@@ -11,3 +11,4 @@ pdwork*
 /.vscode/
 /template/
 __print_pdf_textboxes.py
+.DS_Store
