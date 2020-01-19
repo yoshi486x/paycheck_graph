@@ -1,0 +1,13 @@
+__pycache__
+log/*
+pdwork*
+*.pyc
+*.csv
+*.json
+*.bk
+*.txt
+*.pdf
+/paycheck/
+/.vscode/
+/template/
+__print_pdf_textboxes.py
