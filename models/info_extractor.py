@@ -1,45 +1,69 @@
 import collections
 import csv
 import datetime
-# import numpy as np
+import json
 import os
 import pathlib
 import string
 import subprocess
 import sys
 
-TEXT_FILE_NAME = 'output.txt'
-HOME_PATH = pathlib.Path(os.getcwd())
+try:
+    from models import visualizer 
+except ModuleNotFoundError:
+    pass
+
+
 EMPLOYEE_INFO_INDEX_DELTA = 6   # 3 * 2
+DATA_NAME = 'data'
+HOME_PATH = pathlib.Path(os.getcwd())
+TEXT_FILE_NAME = 'output.txt'
 
-class CsvModel(object):
-    def __init__(self, csv_file):
-        self.csv_file = csv_file
-        if not os.path.exists(csv_file):
-            pathlib.Path(csv_file).touch()
 
-class Extractor(object):
+class DataModel(object):
+    # def __init__(self, data=[]):
+    def __init__(self):
+        # self.data = data
+        self.data = collections.defaultdict(str)
+        self.employee = collections.defaultdict(str)
+        self.summary = collections.defaultdict(str)
+        self.incomes = collections.defaultdict(str)
+        self.deductions = collections.defaultdict(str)
+        self.attendances = collections.defaultdict(str)
+        self.others = collections.defaultdict(str)
+
+    def init_data(self, name=DATA_NAME):
+        # self.data = list([collections.defaultdict(str)])
+        self.data[name] = [self.employee, self.summary, self.incomes, self.deductions, self.attendances, self.others]
+
+
+class Extractor(DataModel):
     """Extract necessary info from textfile to csv files."""
-    # def __init__(self, csv_file=None):
-    #     if not csv_file:
-    #         csv_file = self.get_csv_file_path()
+    def __init__(self, name='data'):
+        super().__init__()
+        self.init_data()
+        # self.init_data(list)
 
-    def extract_text():
-        txt_file_path = HOME_PATH / TEXT_FILE_NAME
-        # with open(str(Extractor.get_txt_file_path())) as f:
-        with open(txt_file_path) as f:
-            # t = string.Template(f.read())
-            """Read whole and convert into list"""
-            mylist = f.read().splitlines()
-            print(mylist)
-        return mylist
+    def dict2json_file(self, datasource='data.json'):
+        """TODO:(yoshiki-11) Import from views module"""
+        data_json = json.dumps(self.data, ensure_ascii=False, indent=4)
+        data_path = HOME_PATH / datasource
+        with open(data_path, 'w') as json_file:
+            json_file.write(data_json)
     
-    def make_tuple_pairs(mylist):
+    def extract_text(self):
+        txt_file_path = HOME_PATH / TEXT_FILE_NAME
+        with open(txt_file_path) as f:
+            """Read whole and convert into list"""
+            self.data[DATA_NAME] = f.read().splitlines()
+    
+    def make_tuple_pairs(self):
         """employee_info
         1. Define dict.
         2. Find index of each keys.
         3. Insert value to dict.
         """
+        mylist=self.data[DATA_NAME]
         # 1. Define dict.
         employee_info = {'原籍会社': None, '社員番号': None, '氏名': None, '所属部署': None}
 
@@ -154,7 +178,6 @@ class Extractor(object):
         #     print('column:', column, '\n', 'amount:', amount)
         #     detail = dict(zip(column, amount))
 
-
         # incomes, deductions, attendances, others = dict(), dict(), dict(), dict()
         incomes = dict(zip(income_columns, income_amounts))
         deductions = dict(zip(deduction_columns, deduction_amounts))
@@ -163,23 +186,82 @@ class Extractor(object):
         # details_dicts = [incomes, deductions, attendances, others]
         # print(details_dicts)
         # return employee_info, general_info, details_dicts
+
+        """Added while refactoring to OOM"""
+        self.employee = employee_info
+        self.summary = general_info
+        self.incomes = incomes
+        self.deductions = deductions
+        self.attendances = attendances
+        self.others = others
+        # self.data = (self.employee, self.summary, self.incomes, self.deductions, self.attendances, self.others)
+        self.init_data()
+        self.dict2json_file()
+
         return employee_info, general_info, incomes, deductions, attendances, others
-
-
-        
 
     def get_txt_file_path():
         txt_file_path = os.getcwd() / TEXT_FILE_NAME
         return txt_file_path
 
-if __name__ == "__main__":
-    CsvModel('gross_income.csv')
-    CsvModel('total_deduction.csv')
+class Formatter(DataModel):
+    
+    def __init__(self):
+        super().__init__()
+        self.json = str()
 
-    payment_list = Extractor.extract_text()
-    print('\n\n++++++++++++++++++++++++++\n\n')
-    extracted_items = Extractor.make_tuple_pairs(payment_list)
-    print('\n\n++++++++++++++++++++++++++\n\n')
-    for item in extracted_items:
-        print(item)
-        print('\n\n')
+    def dict2json_file(self, datasource='organized_data.json'):
+        """TODO:(yoshiki-11) Import from views module"""
+        data_json = json.dumps(self.data, ensure_ascii=False, indent=4)
+        data_path = HOME_PATH / datasource
+        with open(data_path, 'w') as json_file:
+            json_file.write(data_json)
+
+    def format_from_data(self):
+        print('self.data:', self.data[DATA_NAME])
+        for data in self.data[DATA_NAME]:
+            is_digit = self.string2digit(**data)
+            data.update(is_digit)
+
+    def load_json_as_dict(self):
+        data_path = HOME_PATH / 'data.json'
+        with open(data_path, 'r') as json_file:
+            template = string.Template(json_file.read())
+        self.data = json.loads(template.substitute())
+
+    def string2digit(self, **kwargs):
+        keys, values = [], []
+
+        for k, v in kwargs.items():
+            if type(v) != (int or float):
+                if v.replace(',', '').isdigit() is True:
+                    keys.append(k)
+                    values.append(int(v.replace(',', '')))
+                elif v.replace('.', '').isdigit() is True:
+                    keys.append(k)
+                    values.append(float(v))
+            # print(k, type(k), v, type(v))
+        return dict(zip(keys, values))
+
+class DebugModule(object):
+    def main2():
+        extractor = Extractor()
+        extractor.extract_text()
+        print('extractor.data:', extractor.data)
+        extractor.make_tuple_pairs()
+        print('extractor.data:', extractor.data)
+        extractor.dict2json_file()
+
+        formatter = Formatter()
+        formatter.load_json_as_dict()
+        formatter.format_from_data()
+        formatter.dict2json_file()
+        # DebugModule.print_extracted_items(*formatter.data)
+
+    def print_extracted_items(*args):
+        for arg in args:
+            print(arg, '\n')
+
+if __name__ == "__main__":
+    # DebugModule.main()
+    DebugModule.main2()
