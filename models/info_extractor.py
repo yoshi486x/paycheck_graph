@@ -13,6 +13,10 @@ try:
 except ModuleNotFoundError:
     pass
 
+try:
+    from models import data_model
+except ModuleNotFoundError:
+    import data_model
 
 EMPLOYEE_INFO_INDEX_DELTA = 6   # 3 * 2
 DATA_NAME = 'data'
@@ -20,24 +24,7 @@ HOME_PATH = pathlib.Path(os.getcwd())
 TEXT_FILE_NAME = 'output.txt'
 
 
-class DataModel(object):
-    # def __init__(self, data=[]):
-    def __init__(self):
-        # self.data = data
-        self.data = collections.defaultdict(str)
-        self.employee = collections.defaultdict(str)
-        self.summary = collections.defaultdict(str)
-        self.incomes = collections.defaultdict(str)
-        self.deductions = collections.defaultdict(str)
-        self.attendances = collections.defaultdict(str)
-        self.others = collections.defaultdict(str)
-
-    def init_data(self, name=DATA_NAME):
-        # self.data = list([collections.defaultdict(str)])
-        self.data[name] = [self.employee, self.summary, self.incomes, self.deductions, self.attendances, self.others]
-
-
-class Extractor(DataModel):
+class Extractor(data_model.DataModel):
     """Extract necessary info from textfile to csv files."""
     def __init__(self, name='data'):
         super().__init__()
@@ -204,7 +191,7 @@ class Extractor(DataModel):
         txt_file_path = os.getcwd() / TEXT_FILE_NAME
         return txt_file_path
 
-class Formatter(DataModel):
+class Formatter(data_model.DataModel):
     
     def __init__(self):
         super().__init__()
