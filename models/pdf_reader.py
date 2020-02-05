@@ -1,40 +1,62 @@
+import csv
+import os
 import pathlib
+import pprint as pp
 import subprocess
 import sys
 
+from views import console
 
-EXEC_DIR = pathlib.Path(sys.exec_prefix)
+EXEC_CMD = 'pdf2txt.py'
+OUTPUT_DIR_PATH = 'data/output/temp'
+PDF_DIR_PATH = 'data/pdf'
+PDF_FILENAME_NAME = 'FILENAME'
 
-class PdfReader(object):
-    def convert_pdf_to_txt(path):
-        """TODO:
-        Revise input/output_prefix to not use EXEC_DIR. This only works on my env.
+
+class PdfModel(object):
+    def __init__(self, filenames):
+        self.filenames = filenames
+
+class PdfReader(PdfModel):
+    def __init__(self, filenames=None):
+        super().__init__(filenames=filenames)
+
+    def convert_pdf_to_txt(self, filename):
         """
-        py_path = EXEC_DIR / "bin" / "pdf2txt.py"
-        input_prefix = EXEC_DIR / '..'/'template' / 'input' / 'paycheck'
-        output_prefix = EXEC_DIR / '..'
-        input_pdf = input_prefix / path
-        output_dir = output_prefix / 'output.txt'
-        tmp = subprocess.call(['pdf2txt.py', '-V', '-o', str(output_dir), str(input_pdf)])
+        :type filename: int
+        :rtype: 
+        """
 
+        """Organize input path info"""
+        suffix = '.pdf'
+        base_path = console.get_base_dir_path()
+        input_full_dir_path = pathlib.Path(base_path, PDF_DIR_PATH)
+        input_pdf = pathlib.Path(input_full_dir_path, filename).with_suffix(suffix)
 
-class TestModules(object):
-    """Use this for debugging only."""
-    def test1():
-        py_path = EXEC_DIR / "bin" / "pdf2txt.py"
-        print('Exec: ', EXEC_DIR)
-        print('Path: ', py_path)
-        # script_dir = '/Users/dev-yoshiki/Hobby/paycheck_reader/paycheck/bin/pdf2txt.py'
+        """Organize output path info"""
+        suffix = '.txt'
+        output_full_dir_path = pathlib.Path(base_path, OUTPUT_DIR_PATH)
+        output_filename, _ = os.path.splitext(filename)
+        output_file_path = pathlib.Path(output_full_dir_path, output_filename).with_suffix(suffix)
+
+        """Call pdf2text.py"""
+        subprocess.call([EXEC_CMD, '-V', '-o', str(output_file_path), str(input_pdf)])
+
+    def load_pdf_filenames(self, filenames=list):
+
+        filenames = []
+        base_path = console.get_base_dir_path()
+        pdf_full_dir_path = pathlib.Path(base_path, PDF_DIR_PATH)
+        for item in os.listdir(pdf_full_dir_path):
+            filename, _ = os.path.splitext(item)
+            filenames.append(filename)
+        self.filenames = filenames
         return
 
+def main():
+    reader = PdfReader()
+    reader.load_pdf_filenames()
+
+
 if __name__ == "__main__":
-    # TestModules.test1()
-    with open('model/debug_info.txt', 'r') as txt_file:
-        txt_file.seek(1)
-        line = txt_file.readline()
-        print(line)
-        # for row in reader:
-
-    path = line
-    PdfReader.convert_pdf_to_txt(path)
-
+    main()

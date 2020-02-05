@@ -1,54 +1,43 @@
-""" ranking model to write to CSV
+import pprint as pp
 
-TODO (yoshiki) Rewrite to DB instead of CSV
-"""
+from pymongo import MongoClient
 
-import collections
-import csv
-import os
-import pathlib
+CLIENT_HOST = 'mongodb://localhost:27017/'
+CLIENT_NAME = 'test_database'
 
-RANKING_COLUMN_NAME = 'NAME'
-RANKING_COLUMN_COUNT = 'COUNT'
-RECORDING_CSV_FILE_PATH = 'record.csv'
+class MongoModel(object):
+    def __init__(self, db):
+        self.db = db
+
+    def get_mongo_profile(self):
+        """Define DB"""
+        client = MongoClient(CLIENT_HOST)
+        self.db = client[CLIENT_NAME]
 
 
-class CsvModel(object):
-    """Base csv model"""
-    def __init__(self, csv_file):
-        self.csv_file = csv_file
-        if not os.path.exists(csv_file):
-            pathlib.Path(csv_file).touch()
+class RecordingModel(MongoModel):
+    """Definition of class that generates ranking model to write to MongoDB"""
+    def __init__(self):
+        super().__init__(self)
+        if True:
+            self.get_mongo_profile()
 
-class RecordingModel(CsvModel):
-    """Definition of class that generates ranking model to write to CSV"""
-    def __init__(self, csv_file=None, *args, **kwargs):
-        if not csv_file:
-            csv_file = self.get_csv_file_path()
-        super().__init__(csv_file, *args, **kwargs)
-        self.column = [RANKING_COLUMN_NAME, RANKING_COLUMN_COUNT]
-        self.data = collections.defaultdict(int)
-        # self.load_data()
+    def injest_data_to_mongo(self, stack):
+        """Insert data to DB"""
+        db_stacks = self.db.stacks
+        stack_id = db_stacks.insert_one(stack).inserted_id
 
-    def get_csv_file_path(self):
-        """Set csv file path.
+        """Print to see the inserted data"""
+        # print(stack_id, type(stack_id))
+        # print("###############")
+        pp.pprint(db_stacks.find_one({'_id': stack_id}))
 
-        Use csv path if set in settings, otherwise use default
-        """
-        csv_file_path = None
-        try:
-            import settings
-            if settings.CSV_FILE_PATH:
-                csv_file_path = settings.CSV_FILE_PATH
-        except ImportError:
-            pass
 
-        if not csv_file_path:
-            csv_file_path = RECORDING_CSV_FILE_PATH
-        return csv_file_path
 
-def main():
+def main(data):
     recording = RecordingModel()
+    recording.injest_data_to_mongo(data)
+    
 
 
 if __name__ == "__main__":
