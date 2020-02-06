@@ -16,7 +16,7 @@ This package creates statical graphs of your paycheck! Download it and try putti
 
 ### Prerequisites
 * Paycheck downloaded (in pdf format). <br>
-*/// Again, this package only works at a company where I work. ///*
+*/// Again, this package only works at the company where I work. ///*
 
 
 ### Installing
