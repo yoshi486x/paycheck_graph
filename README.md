@@ -12,10 +12,11 @@
 
 This package creates statical graphs of your paycheck! Download it and try putting your pdf file in the suggested folder where instructed below.
 
-*Notice: This package only works at a company where I work (at this moment.)*
+*NOTICE: This package only works at the company where I work.*
 
 ### Prerequisites
-* Paycheck downloaded (in pdf format). 
+* Paycheck downloaded (in pdf format). <br>
+*/// Again, this package only works at a company where I work. ///*
 
 
 ### Installing
