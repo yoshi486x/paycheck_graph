@@ -1,9 +1,8 @@
 """Define full-analyser model"""
 import pprint as pp
 
-from models import pdf_reader
-from models import recording
-from models import tailor
+from models import pdf_reader, recording, tailor
+from views import console
 
 class FullDataModel(object):
     def __init__(self, data=list):
@@ -15,8 +14,26 @@ class FullAnalyser(object):
     1. Get all pdf file name for paycheck
     2. for each file, proceed Extract and Transform
     """
-    def __init__(self, filenames=None):
+    def __init__(self, db='MongoDB', filenames=None, speak_color='green', status=None):
+        self.db = db
         self.filenames = filenames
+        self.speak_color = speak_color
+        self.status = status
+
+    def ask_for_db_activation(self):
+        while True:
+            # template = console.get_template('hello.txt', self.speak_color)
+            template = console.get_template('db_activation.txt', self.speak_color)
+            is_yes = input(template.substitute({
+                'db': self.db}))
+
+            if is_yes.lower() == 'y' or is_yes.lower() == 'yes':
+                self.status = True
+                break
+
+            if is_yes.lower() == 'n' or is_yes.lower() == 'no':
+                self.status = False
+                break
 
     def convert_pdf_into_text(self):
         pdfReader = pdf_reader.PdfReader()
@@ -29,10 +46,10 @@ class FullAnalyser(object):
         """Create instance for Recording models (MongoDB)"""
         mongo_model = recording.MongoModel(None)
         if not mongo_model.get_mongo_profile():
-            mongo_status = False
+            print('{} seems to be not running.'.format(self.db))
+            self.status = False
         else:
-            mongo_status = True
-        print('mongo:', mongo_status)
+            self.status = True
 
         """Parameter tuning for debuging use"""
         # filenames = self.filenames[1:2]
@@ -56,9 +73,9 @@ class FullAnalyser(object):
             text_tailor.value_format_remove_dot_in_keys()
 
             # Register data to db and json. Order must be json to db to avoid erro 
-            recording_model = recording.RecordingModel(filename, mongo_status)
+            recording_model = recording.RecordingModel(filename, self.status)
             recording_model.record_data_in_json(text_tailor.dict_data)
-            if mongo_status:
+            if self.status:
                 recording_model.record_data_to_mongo(text_tailor.dict_data)
 
     def paycheck_analysis(self):
