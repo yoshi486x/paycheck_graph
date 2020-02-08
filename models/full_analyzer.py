@@ -22,13 +22,12 @@ class FullAnalyzer(object):
         pdfReader = pdf_reader.PdfReader()
         pdfReader.load_pdf_filenames()
         self.filenames = sorted(pdfReader.filenames)
-        # self.filenames = pdfReader.filenames
         for filename in self.filenames:
             pdfReader.convert_pdf_to_txt(filename)
 
     def format_text_data_to_analyzable_dict(self):
         """Create instance for Recording models (MongoDB)"""
-        recording_model = recording.RecordingModel()
+        # recording_model = recording.RecordingModel(self.filenames)
 
         """Parameter tuning for debuging use"""
         # filenames = self.filenames[1:2]
@@ -36,6 +35,7 @@ class FullAnalyzer(object):
 
         """Main analyse model"""
         for filename in filenames:
+            recording_model = recording.RecordingModel(filename)
             """Extract and Transform text data
             output: MongoDB, data/output/json
             """
@@ -51,9 +51,10 @@ class FullAnalyzer(object):
             text_tailor.value_format_remove_dot_in_keys()
             # pp.pprint(text_tailor.dict_data)
 
-            # Register data to db 
-            print("@@@@@@@@@@@@Mongo@@@@@@@@@@@@@@@\n")
-            recording_model.injest_data_to_mongo(text_tailor.dict_data)
+            # Register data to db and json. Order must be json to db to avoid erro 
+            print("@@@@@@@@@@@@Export@@@@@@@@@@@@@@@\n")
+            recording_model.record_data_in_json(text_tailor.dict_data)
+            recording_model.record_data_to_mongo(text_tailor.dict_data)
 
 
 
