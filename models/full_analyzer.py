@@ -14,7 +14,6 @@ class FullAnalyzer(object):
     Steps:
     1. Get all pdf file name for paycheck
     2. for each file, proceed Extract and Transform
-    3. 
     """
     def __init__(self, filenames=None):
         self.filenames = filenames
@@ -29,43 +28,33 @@ class FullAnalyzer(object):
 
     def format_text_data_to_analyzable_dict(self):
         """Create instance for Recording models (MongoDB)"""
-        # text_tailor = tailor.PartitionerModel()
         recording_model = recording.RecordingModel()
 
         """Parameter tuning for debuging use"""
-        print("####################\n")
-        print('List of loaded pdf filenames')
-        pp.pprint(self.filenames)
-        print("####################\n")
-        filenames = self.filenames[4:6]
-        # filenames = self.filenames
-        print('Given list parameters')
-        pp.pprint(filenames)
-        print("####################\n")
+        # filenames = self.filenames[1:2]
+        filenames = self.filenames
 
         """Main analyse model"""
         for filename in filenames:
-            print("+++++++++++++++++++++++++")
-            text_tailor = tailor.PartitionerModel()
             """Extract and Transform text data
-            Returns: dict
-            """       
+            output: MongoDB, data/output/json
+            """
+            text_tailor = tailor.PartitionerModel()
             text_tailor.load_data(filename)
+            text_tailor.value_format_digit()
             text_tailor.define_partitions()
             text_tailor.partition_data()
             text_tailor.self_correlate_block1()
             text_tailor.self_correlate_block2()
-            text_tailor.self_correlate_block3()
             text_tailor.value_format_date()
-            text_tailor.value_format_digit()
             text_tailor.value_format_deductions()
             text_tailor.value_format_remove_dot_in_keys()
-            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@\n")
-            pp.pprint(text_tailor.dict_data)
+            # pp.pprint(text_tailor.dict_data)
 
-            """Register data to db """
+            # Register data to db 
             print("@@@@@@@@@@@@Mongo@@@@@@@@@@@@@@@\n")
-            # recording_model = recording.RecordingModel()
             recording_model.injest_data_to_mongo(text_tailor.dict_data)
+
+
 
 

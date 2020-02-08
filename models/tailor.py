@@ -4,11 +4,12 @@ import datetime
 import math
 import os
 import pathlib
-import pprint as pp
+import pprint
 import re
 
 from views import console
 
+pp = pprint.PrettyPrinter(indent=4)
 TEXT_DIR_PATH = 'data/output/temp'
 
 class DataModel(object):
@@ -21,85 +22,12 @@ class DataModel(object):
 
 
 class PartitionerModel(DataModel):
-    """TODO Find a way to read multiple data with this model"""
-    def __init__(self):
+    """Read text file and transform it into dict format"""
+    def __init__(self, block_count=4):
         super().__init__()
-        self.ankers = ['■支給額明細', '■勤怠情報', '■口座情報']
-        self.ankerIndexes = [] * 5
-        self.block1, self.block2, self.block3, self.block4 = list, list, list, list
-        self.profileKeys = ['原籍会社', '社員番号', '氏名', '所属部署']
-        self.summaryKeys = ['check_type', '支給年月日', '支給額合計', '控除額合計', '差引支給額']
-        self.incomesTitles = ['■支給額明細', '支給項目']
-        self.deductionsTitles = ['■控除額明細', '控除項目']
-        self.attendancesTitles = ['■勤怠情報', '勤怠管理項目']
-        self.othersTitles = ['■その他情報', 'その他']
-        self.remainedTitles = ['■口座情報', '振込口座']
-
-    def load_data(self, filename):
-
-        """
-        :type filename: int
-        :stype: dict
-        :rtype: 
-        """
-        suffix = '.txt'
-        base_dir = console.get_base_dir_path()
-        text_file_path = pathlib.Path(base_dir, TEXT_DIR_PATH, filename).with_suffix(suffix)
-
-        with open(text_file_path, 'r') as text_file:
-            list_data = text_file.read().splitlines()
-        while '' in list_data:
-            list_data.remove('')
-        self.list_data = list_data
-        return
-
-    def category_counter(self, block, init_ankers):
-        # ankers = ankers[2::]
-        # print('ankers', init_ankers)
-        # [print(j, item) for j, item in enumerate(block)]
-        # print('len', len(block), '\n')
-
-        """remove ankers without ■ in it"""
-        selected_ankers = []
-        for j, anker in enumerate(init_ankers):
-            if list(anker)[0] == '■' and j != 0:
-                selected_ankers.append(anker)
-        # print(selected_ankers)
-
-        """get value on top of selected_anker"""
-        bottom_ankers = []
-        for anker in selected_ankers:
-            tempIndex = block.index(anker)
-            bottom_ankers.append(block[tempIndex - 1])
-        # print(bottom_ankers)
-
-        """remove subtitles from block"""
-        [block.remove(anker) for anker in init_ankers]
-        # [print(j, item) for j, item in enumerate(block)]
-        # print('len', len(block), '\n')
-
-        """calcurate bottomIndex """
-        topIndex = []
-        for anker in bottom_ankers:
-            topIndex.append(block.index(anker) + 1)
-        topIndex.insert(0, 0)
-        topIndex.append(len(block))
-        # print('topIndex', topIndex)
-
-        """calc lengths by ankers"""
-        category_lengths = []
-        for j, index in enumerate(topIndex):
-            try:
-                category_lengths.append(abs(index - topIndex[j + 1]))
-            except IndexError:
-                pass
-        # print('lengths', category_lengths)
-
-        """calc length of each categories"""
-        a, c = tuple(category_lengths)
-        b = int((c - a) / 2)
-
-        return (a, b)
+        self.ankers = ['■支給額明細', '■口座情報']
+        self.ankerIndexes = [] * block_count
+        self.block1, self.block2, self.block3 = list, list, list
 
     def define_partitions(self):
         # init ankerIndex for start and end
@@ -109,15 +37,37 @@ class PartitionerModel(DataModel):
         self.ankerIndexes.append(len(self.list_data))
         # print('ankerIndexes', self.ankerIndexes)
 
+    def load_data(self, filename):
+        """
+        :type filename: int
+        :stype: dict
+        :rtype: 
+        """
+        suffix = '.txt'
+        base_dir = console.get_base_dir_path()
+        text_file_path = pathlib.Path(base_dir, TEXT_DIR_PATH, filename).with_suffix(suffix)
+        print('text_file_path:', text_file_path)
+        with open(text_file_path, 'r') as text_file:
+            list_data = text_file.read().splitlines()
+        while '' in list_data:
+            list_data.remove('')
+        self.list_data = list_data
+        # pp.pprint(list_data)
+        return
+
     def partition_data(self):
         """Partition one list of data into 4 small lists"""
         self.block1 = self.list_data[self.ankerIndexes[0]:self.ankerIndexes[1]]
         self.block2 = self.list_data[self.ankerIndexes[1]:self.ankerIndexes[2]]
         self.block3 = self.list_data[self.ankerIndexes[2]:self.ankerIndexes[3]]
-        self.block4 = self.list_data[self.ankerIndexes[3]:self.ankerIndexes[4]]
+        # pp.pprint(self.block2)
+        return
 
     def self_correlate_block1(self):
-        """Initialization"""
+        """Update summary and profile categories."""
+        #"""Initialization"""
+        category1 = self.keys[0]
+        category2 = self.keys[1]
         sec1 = ['check_type']
         sec2 = ['原籍会社', '社員番号', '氏名']
         sec3 = ['所属部署', '支給年月日', '支給額合計', '控除額合計']
@@ -132,100 +82,142 @@ class PartitionerModel(DataModel):
             index = self.block1.index(sec)
             para3.append(self.block1[index + 1])
 
-        # Pickup 所属部署 and combine with profile-info
+        # Combine 所属部署 extracted in two lines (if so).
         para2.append(para3.pop(0))
         sec2.append(sec3.pop(0))
 
-        # Combine check_type with summary-infos
+        # Combine check_type(key) with summary(category)
         sec1.extend(sec3)
         para1.extend(para3)
 
-        self.update_datamodel(self.keys[0], sec1, para1)
-        self.update_datamodel(self.keys[1], sec2, para2)
+        # Submit organized datamodel
+        self.update_datamodel(category2, sec1, para1)
+        self.update_datamodel(category1, sec2, para2)
          
-        """exception for 所属部署 with more than two lines"""
+        #exception for 所属部署 with more than two lines
         new_department = []
         startIndex = self.block1.index('所属部署')
         endIndex = self.block1.index('支給年月日') - 1
         lines = abs(endIndex - startIndex)
-        # print(lines)
 
         if  lines > 1:
             for index in startIndex + 1, endIndex:
                 new_department.append(self.block1[index])
-            self.dict_data['summary']['所属部署'] = ''.join(new_department)
+            self.dict_data[category1]['所属部署'] = ''.join(
+                new_department)
 
-    def self_correlate_block2(self):
-        """classify big block into categories"""
-        slim_block = self.block2
-        length1, length2 = self.category_counter(slim_block, self.incomesTitles + self.deductionsTitles )
+        # Calculate and append 差引支給額 to dict_data
+        total_income = self.dict_data[category2]['支給額合計']
+        total_deduction = self.dict_data[category2]['控除額合計']
 
-        keys1, key2, values1, values2 = [], [], [], []
-        AL, OL = length1, length2
-        keys1 = slim_block[:AL]
-        keys2 = slim_block[AL:AL + OL]
-        values1 = slim_block[AL + OL:AL + OL + AL]
-        values2 = slim_block[AL + OL + AL:AL + OL + AL + OL]
+        deducted_income_key = '差引支給額'
+        deducted_income_value = int(total_income) - int(total_deduction)
 
-        """Update dict_data"""
-        self.update_datamodel('incomes', keys1, values1)
-        self.update_datamodel('deductions', keys2, values2)
-
-    def self_correlate_block3(self):
-        def remove_stray_data(mylist):
-            """Remove 差引支給額 value"""
-            staryIndex = mylist.index(mylist[-1])
-            del mylist[staryIndex]
-            return mylist
-
-        """classify big block into categories"""
-        slim_block = self.block3
-        slim_block = remove_stray_data(slim_block)
-        length1, length2 = self.category_counter(slim_block, self.attendancesTitles+self.othersTitles)
-
-        """store each categ keys and values in list"""
-        keys1, key2, values1, values2 = [], [], [], []
-        AL, OL = length1, length2
-        keys1 = slim_block[:AL]
-        keys2 = slim_block[AL:AL + OL]
-        values1 = slim_block[AL + OL:AL + OL + AL]
-        values2 = slim_block[AL + OL + AL:AL + OL + AL + OL]
-
-        self.update_datamodel('attendances' , keys1, values1)
-        self.update_datamodel('others', keys2, values2)
-
-    def update_datamodel(self, name, keys, values):
-        zipped = zip(keys, values)
-        self.dict_data[name] = dict(zip(keys, values))
-        # print('**dict_data updated**')
+        self.dict_data[category2].update(
+            {deducted_income_key: deducted_income_value})
+        # pp.pprint(self.dict_data)
         return
 
+    def self_correlate_block2(self):
+        """Initialize paras. Modification needed to simplify code."""
+        main_column_names = ['■支給額明細', '■控除額明細', '■勤怠情報', '■その他情報']
+        sub_column_names = ['支給項目', '控除項目', '勤怠管理項目', 'その他']
+        keys, values, section_anker_names = [], [], []
+
+        """Partition out one-line block to list of keys and values
+        input: self.block2
+        output: keys, values, section_anker_names
+        * All types are list.
+        """
+        for j, item in enumerate(self.block2):
+            """Write cases for if statements"""
+            if item in main_column_names:
+                continue
+            elif item in sub_column_names:
+                section_anker_name = self.block2[j+1]
+                section_anker_names.append(section_anker_name)
+            elif type(item) == int or type(item) == float:
+                values.append(item)
+            else:
+                if item.replace(',', '').rsplit('-',1)[-1].isdigit() is True:
+                    values.append(int(item.replace(',', '')))
+                elif item.replace('.', '').rsplit('-',1)[-1].isdigit() is True:
+                    values.append(float(item))
+                elif re.match('\d+等級', item):
+                    values.append(str(item))
+                else:
+                    keys.append(item)
+        # print('{0:*^30}'.format('check kv'))
+        # print(section_anker_names)
+
+        """Insert func for removing 差引支給額"""
+        keys.append(None)
+        deducted_income_value = self.dict_data['summary']['差引支給額']
+        values.remove(deducted_income_value)
+
+        """Combine and partition in sub-blocks
+        return: List->section_anker_indexes """
+        # Initialize
+        categories = ['incomes', 'deductions', 'attendances', 'others']
+        slice_manual = collections.defaultdict(dict)
+
+        # Find index_after_smoothing
+        section_anker_indexes = []
+        for name in section_anker_names:
+            section_anker_indexes.append(keys.index(name))
+        section_anker_indexes.append(len(keys) - 1)
+        # print(section_anker_indexes)
+        slice_borders = []
+
+        # Create index pairs for slices
+        for j, index in enumerate(section_anker_indexes):
+            if j == len(section_anker_indexes) - 1:
+                break
+            slice_borders.append((index, section_anker_indexes[j+1]))
+
+        # Partition set of key-values in sections
+        """TODO Maybe this creating manual process could be deleted."""
+        for category, border in zip(categories, slice_borders):
+            slice_manual[category] = border
+
+        # Slice kv and update dict_data
+        for category, border in slice_manual.items():
+            head, tail = border
+            sliced_keys = keys[head:tail]
+            sliced_values = values[head:tail]
+            self.update_datamodel(category, sliced_keys, sliced_values)
+        # pp.pprint(self.dict_data)
+        return
+
+    def update_datamodel(self, name, keys, values):
+        self.dict_data[name] = dict(zip(keys, values))
+
     def value_format_date(self):
-        thisdate = self.dict_data['profile']['支給年月日']
-        self.dict_data['profile']['支給年月日'] = datetime.datetime.strptime(thisdate, '%Y年%m月%d日').strftime('%Y-%m-%d')
+        thisdate = self.dict_data['summary']['支給年月日']
+        self.dict_data['summary']['支給年月日'] = datetime.datetime.strptime(thisdate, '%Y年%m月%d日').strftime('%Y-%m-%d')
 
     def value_format_deductions(self, category='deductions'):
         for key, value in self.dict_data[category].items():
             self.dict_data[category][key] = -value
 
+    """TODO rstrip the check_type and remove space in between"""
+    
     def value_format_digit(self):
-        the_data = self.dict_data
-        for category in self.keys:
-            # pp.pprint(the_data[category])
-            for key, value in the_data[category].items():
-                # print('value', value)
-                if type(value) != (int or float):
-                    if value.replace(',', '').isdigit() is True:
-                        the_data[category][key] = int(value.replace(',', ''))
-                    elif value.replace('.', '').isdigit() is True:
-                        the_data[category][key] = float(value)
-                """TODO rstrip the check_type and remoe space in between"""
-                # if value
-        # pp.pprint(the_data)
-        # pp.pprint(self.dict_data)
+        the_data = self.list_data
+        for j, item in enumerate(the_data):
+            if type(item) != (int or float):
+                if item.replace(',', '').isdigit() is True:
+                    the_data[j] = int(item.replace(',', ''))
+                elif item.replace('.', '').isdigit() is True:
+                    the_data[j] = float(item)
 
     def value_format_remove_dot_in_keys(self, category='attendances', new_pairs=[], initializer={}):
-        """TODO: remove dot from keys"""
+        """Remove dot from dict keys
+        :type category: int
+        :type new_pairs: list
+        :type initializer: dict
+        :rtype: 
+        """
         def find_dot_generator():
             for key, value in self.dict_data[category].items():
                 yield re.sub('\([^)]*\)', '', key), value
@@ -238,34 +230,7 @@ class PartitionerModel(DataModel):
 
 
 def main():
-    partitioner = PartitionerModel()
-    # pp.pprint(partitioner.temp_data)
-    for j, item in enumerate(partitioner.list_data):
-        print(j, item)
-    partitioner.define_partitions()
-
-    partitioner.partition_data()
-    print('\nblock1:', partitioner.block1)
-    print('\nblock2:', partitioner.block2)
-    print('\nblock3:', partitioner.block3)
-    print('\nblock4:', partitioner.block4)
-    print('\n')
-    partitioner.self_correlate_block1()
-    # pp.pprint(partitioner.dict_data)
-    # print('\n')
-    partitioner.self_correlate_block2()
-    pp.pprint(partitioner.dict_data)
-    print('\n')
-    partitioner.self_correlate_block3()
-    # pp.pprint(partitioner.dict_data)
-    # print('\n')
-    partitioner.value_format_digit()
-    partitioner.value_format_date()
-    partitioner.value_format_deductions()
-    partitioner.value_format_remove_dot_in_keys()
-    pp.pprint(partitioner.dict_data)
-    print('\n')
-
+    pass
 
 if __name__ == "__main__":
     main()
