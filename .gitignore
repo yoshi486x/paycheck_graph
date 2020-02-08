@@ -6,8 +6,8 @@ pdwork*
 *.csv
 *.json
 *.bk
-*.txt
 *.pdf
+/archive/
 /paycheck/
 /.vscode/
 /template/
