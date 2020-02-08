@@ -9,7 +9,7 @@ class FullDataModel(object):
     def __init__(self, data=list):
         self.data = data
 
-class FullAnalyzer(object):
+class FullAnalyser(object):
     """Handle data model on anylysing process
     Steps:
     1. Get all pdf file name for paycheck
@@ -25,9 +25,14 @@ class FullAnalyzer(object):
         for filename in self.filenames:
             pdfReader.convert_pdf_to_txt(filename)
 
-    def format_text_data_to_analyzable_dict(self):
+    def format_text_data_to_analysable_dict(self):
         """Create instance for Recording models (MongoDB)"""
-        # recording_model = recording.RecordingModel(self.filenames)
+        mongo_model = recording.MongoModel(None)
+        if not mongo_model.get_mongo_profile():
+            mongo_status = False
+        else:
+            mongo_status = True
+        print('mongo:', mongo_status)
 
         """Parameter tuning for debuging use"""
         # filenames = self.filenames[1:2]
@@ -35,10 +40,10 @@ class FullAnalyzer(object):
 
         """Main analyse model"""
         for filename in filenames:
-            recording_model = recording.RecordingModel(filename)
             """Extract and Transform text data
             output: MongoDB, data/output/json
             """
+            # Transform text data into dict format
             text_tailor = tailor.PartitionerModel()
             text_tailor.load_data(filename)
             text_tailor.value_format_digit()
@@ -49,12 +54,12 @@ class FullAnalyzer(object):
             text_tailor.value_format_date()
             text_tailor.value_format_deductions()
             text_tailor.value_format_remove_dot_in_keys()
-            # pp.pprint(text_tailor.dict_data)
 
             # Register data to db and json. Order must be json to db to avoid erro 
-            print("@@@@@@@@@@@@Export@@@@@@@@@@@@@@@\n")
+            recording_model = recording.RecordingModel(filename, mongo_status)
             recording_model.record_data_in_json(text_tailor.dict_data)
-            recording_model.record_data_to_mongo(text_tailor.dict_data)
+            if mongo_status:
+                recording_model.record_data_to_mongo(text_tailor.dict_data)
 
     def paycheck_analysis(self):
         pass

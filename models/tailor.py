@@ -46,7 +46,7 @@ class PartitionerModel(DataModel):
         suffix = '.txt'
         base_dir = console.get_base_dir_path()
         text_file_path = pathlib.Path(base_dir, TEXT_DIR_PATH, filename).with_suffix(suffix)
-        print('text_file_path:', text_file_path)
+        # print('text_file_path:', text_file_path)
         with open(text_file_path, 'r') as text_file:
             list_data = text_file.read().splitlines()
         while '' in list_data:

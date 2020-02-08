@@ -3,6 +3,7 @@ import json
 import os
 import pprint
 import pathlib
+import pymongo
 
 from pymongo import MongoClient
 
@@ -43,16 +44,23 @@ class MongoModel(object):
 
     def get_mongo_profile(self):
         """Define DB"""
-        client = MongoClient(CLIENT_HOST)
-        self.db = client[CLIENT_NAME]
+        try:
+            client = MongoClient(host=CLIENT_HOST, serverSelectionTimeoutMS=100)
+            client.server_info()
+            self.db = client[CLIENT_NAME]
+            return True
+        except pymongo.errors.ServerSelectionTimeoutError as error:
+            print('CONNECTION ERROR')
+            return False
+        
 
 
 class RecordingModel(JsonModel, MongoModel):
     """Definition of class that generates ranking model to write to MongoDB"""
-    def __init__(self, filename, json_file=None, db=None):
+    def __init__(self, filename, mongo_status, json_file=None, db=None):
         JsonModel.__init__(self, filename, json_file)
         MongoModel.__init__(self, db)
-        if True:
+        if mongo_status:
             self.get_mongo_profile()
 
     # def export_json(self, dir_data):
