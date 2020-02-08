@@ -78,6 +78,6 @@ class FullAnalyser(object):
             if self.status:
                 recording_model.record_data_to_mongo(text_tailor.dict_data)
 
-    def paycheck_analysis(self):
+    def visualize_in_graph(self):
         pass
 

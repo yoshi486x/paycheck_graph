@@ -7,9 +7,7 @@ import pathlib
 import pprint
 import re
 
-from views import console
-
-pp = pprint.PrettyPrinter(indent=4)
+# pp = pprint.PrettyPrinter(indent=4)
 TEXT_DIR_PATH = 'data/output/temp'
 
 class DataModel(object):
@@ -30,42 +28,40 @@ class PartitionerModel(DataModel):
         self.block1, self.block2, self.block3 = list, list, list
 
     def define_partitions(self):
-        # init ankerIndex for start and end
+        """init ankerIndex for start and end"""
         self.ankerIndexes.append(0)
         for anker in self.ankers:
             self.ankerIndexes.append(self.list_data.index(anker))
         self.ankerIndexes.append(len(self.list_data))
-        # print('ankerIndexes', self.ankerIndexes)
+
+    def get_base_dir_path(self):
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     def load_data(self, filename):
-        """
-        :type filename: int
-        :stype: dict
-        :rtype: 
-        """
+        """Load data"""
+
         suffix = '.txt'
-        base_dir = console.get_base_dir_path()
+        base_dir = self.get_base_dir_path()
         text_file_path = pathlib.Path(base_dir, TEXT_DIR_PATH, filename).with_suffix(suffix)
-        # print('text_file_path:', text_file_path)
+
         with open(text_file_path, 'r') as text_file:
             list_data = text_file.read().splitlines()
         while '' in list_data:
             list_data.remove('')
+
         self.list_data = list_data
-        # pp.pprint(list_data)
-        return
 
     def partition_data(self):
         """Partition one list of data into 4 small lists"""
+
         self.block1 = self.list_data[self.ankerIndexes[0]:self.ankerIndexes[1]]
         self.block2 = self.list_data[self.ankerIndexes[1]:self.ankerIndexes[2]]
         self.block3 = self.list_data[self.ankerIndexes[2]:self.ankerIndexes[3]]
-        # pp.pprint(self.block2)
-        return
 
     def self_correlate_block1(self):
         """Update summary and profile categories."""
-        #"""Initialization"""
+
+        # Initialization
         category1 = self.keys[0]
         category2 = self.keys[1]
         sec1 = ['check_type']
@@ -73,7 +69,7 @@ class PartitionerModel(DataModel):
         sec3 = ['所属部署', '支給年月日', '支給額合計', '控除額合計']
         para1, para2, para3 = [], [], []
 
-        """Where function actually begins"""
+        # Where function actually begins
         para1.append(self.block1[0])
         for sec in sec2:
             index = self.block1.index(sec)
@@ -131,6 +127,7 @@ class PartitionerModel(DataModel):
         """
         for j, item in enumerate(self.block2):
             """Write cases for if statements"""
+            
             if item in main_column_names:
                 continue
             elif item in sub_column_names:
@@ -147,8 +144,6 @@ class PartitionerModel(DataModel):
                     values.append(str(item))
                 else:
                     keys.append(item)
-        # print('{0:*^30}'.format('check kv'))
-        # print(section_anker_names)
 
         """Insert func for removing 差引支給額"""
         keys.append(None)
@@ -166,7 +161,6 @@ class PartitionerModel(DataModel):
         for name in section_anker_names:
             section_anker_indexes.append(keys.index(name))
         section_anker_indexes.append(len(keys) - 1)
-        # print(section_anker_indexes)
         slice_borders = []
 
         # Create index pairs for slices
@@ -186,7 +180,6 @@ class PartitionerModel(DataModel):
             sliced_keys = keys[head:tail]
             sliced_values = values[head:tail]
             self.update_datamodel(category, sliced_keys, sliced_values)
-        # pp.pprint(self.dict_data)
         return
 
     def update_datamodel(self, name, keys, values):
@@ -226,7 +219,6 @@ class PartitionerModel(DataModel):
         [new_pairs.append(item) for item in generator]
         self.dict_data[category] = initializer
         self.dict_data[category].update(new_pairs)
-        # pp.pprint(self.dict_data)
 
 
 def main():
