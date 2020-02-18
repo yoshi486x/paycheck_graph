@@ -13,3 +13,4 @@ pdwork*
 /template/
 __print_pdf_textboxes.py
 .DS_Store
+camouflage.py
