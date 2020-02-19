@@ -33,14 +33,12 @@ class VisualizingModel(object):
         self.figure = figure
         self.graphs = graphs
 
-        # Keys for creating table
-        # self.key1 = 
-        # self.clumn
-
     def create_base_table(self):
         """Create base tablefor """
         df = self.dataframe
         dataframes = []
+
+        # Loop
         for filename in self.filenames:
             dates, keys, values, indexes = [], [], [], []
 
@@ -61,21 +59,18 @@ class VisualizingModel(object):
         # Combine tables of each json file
         df = pd.concat(dataframes)
         df = df.pivot(index='date', columns='type', values='income')
-        df = df.rename(columns={
-            'Smart&Fun!支援金': 'smart&fun', 'その他支給(課税加算)': 'other', \
-                '不足日数時間精算': 'not enough', '休日勤務手当':'weekends', \
-                    '基本給':'base', '新卒住宅補助':'support', '時間外勤務手当': 'over work', \
-                        '深夜勤務手当': 'late night', '通勤手当*': 'train', '遡及差額':'diff'})
-        self.dataframe = df
-        
+
         """TODO Maybe this func should be placed separately"""
         try:
-            # from models import camouflage
-            import camouflage
-            self.datafame = camouflage.camouflage(df)
+            try:
+                import camouflage
+            except:
+                from models import camouflage
+            df = camouflage.camouflage(df)
         except:
             pass
-        return df
+        
+        self.dataframe = df
 
     def get_base_dir_path(self):
         return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -110,71 +105,23 @@ class VisualizingModel(object):
         
 
     def sort_table(self):
-        """Sort the base table to clearly see the fluctuation
-         of incomes by separating static and kinetic graphs"""
-        df = self.dataframe
-        print(df)
-        cols = df.columns.tolist()
-        null_count = df.isnull().sum(axis = 0).tolist()
 
-        """Step one:
-        Decend by number of NAN in cols"""
-        list(zip(cols, null_count))
-        mylist = list(zip(cols, null_count))
-        mylist = sorted(mylist, key=lambda i: (i[1], i[0]))
-        mylist, _ = zip(*mylist)
-        df = df[list(mylist)]
-
-        """Step two:
-        Rearrange order by standard deviation"""
-        null_count = df.isnull().sum(axis = 0).tolist()
-        cols = df.columns.tolist()
-        pairs = list(zip(cols, null_count))
-
-        mydict = collections.OrderedDict(pairs)
-        keys = ['avg', 'var', 'std']
-        avgs, vars, stds, idx = [], [], [], []
-        stat_collections = collections.defaultdict(dict)
-
-        for key, val in mydict.items():
-            if key == 'base' or key == '基本給':
-                continue
-            elif val == 0:
-                # dict version
-                # stat = dict({key:[] for key in keys})
-                # col = list(df.loc[:, key])
-                # stat['avg'] = int(np.average(col))
-                # stat['var'] = int(np.var(col))
-                # stat['std'] = int(np.std(col))
-                # stat_collections[key] = stat
-
-                # dataframe version
-                col = list(df.loc[:, key])
-                avgs.append(int(np.average(col)))
-                vars.append(int(np.var(col)))
-                stds.append(int(np.std(col)))
-                idx.append(key)
-        # pp.pprint(stat_collections)
-        df = pd.DataFrame(
-            {'avg': avgs,
-            'var': vars,
-            'std': stds},
-            index = idx)
-        print(df)
-
-
+        try:
+            import sorting
+        except:
+            from models import sorting
+        
+        df = sorting.sort_table(self.dataframe)
         self.dataframe = df
 
     def stacked_bar_graph(self):
         stacked_bar = self.dataframe.plot(figsize=(18, 8), kind='bar', stacked=True, grid=True)
-        print(stacked_bar)
+        stacked_bar.figure
 
 def main():
     visual = VisualizingModel(None)
-    # print(visual.filenames)
-    df = visual.create_base_table()
-    # print(df)
-    df = visual.sort_table()
+    visual.create_base_table()
+    visual.sort_table()
     visual.stacked_bar_graph()
     visual.save_graph_to_image()
 
