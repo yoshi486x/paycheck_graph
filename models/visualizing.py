@@ -9,6 +9,7 @@ pp = pprint.PrettyPrinter(indent=4, width=20)
 
 JSON_DIR_PATH = 'data/output/json'
 GRAPHS_DIR_PATH = 'data/output/graphs_and_charts'
+INCOME_GRAPH_NAME = 'income_timechart.png'
 
 class JsonModel(object):
     def __init__(self, filename, json_file):
@@ -22,7 +23,7 @@ class JsonModel(object):
 
 class VisualizingModel(object):
 
-    def __init__(self, filenames, base_dir=None, dataframe=None, figure=None, graphs='timechart'):
+    def __init__(self, filenames, base_dir=None, dataframe=None, figure=None):
         if not base_dir:
             base_dir = self.get_base_dir_path()
         self.base_dir = base_dir
@@ -31,7 +32,7 @@ class VisualizingModel(object):
         self.filenames = filenames
         self.dataframe = dataframe
         self.figure = figure
-        self.graphs = graphs
+        self.graphs = INCOME_GRAPH_NAME
 
     def create_base_table(self):
         """Create base tablefor """
@@ -100,9 +101,13 @@ class VisualizingModel(object):
 
     def save_graph_to_image(self):
         file_path = pathlib.Path(GRAPHS_DIR_PATH, self.graphs)
-        fig = self.dataframe.plot(figsize=(18, 8), kind='bar', stacked=True, grid=True).get_figure()
+        ax = self.dataframe.plot(
+            figsize=(15, 10), kind='bar', stacked=True, grid=True, 
+            title='Income Timeline(2018/09 - 2019/12)',
+            )
+        ax.set_ylabel('Income')
+        fig = ax.get_figure()
         fig.savefig(file_path)
-        
 
     def sort_table(self):
 
@@ -114,17 +119,12 @@ class VisualizingModel(object):
         df = sorting.sort_table(self.dataframe)
         self.dataframe = df
 
-    def stacked_bar_graph(self):
-        stacked_bar = self.dataframe.plot(figsize=(18, 8), kind='bar', stacked=True, grid=True)
-        stacked_bar.figure
 
 def main():
     visual = VisualizingModel(None)
     visual.create_base_table()
     visual.sort_table()
-    visual.stacked_bar_graph()
     visual.save_graph_to_image()
-
 
 
 if __name__ == "__main__":

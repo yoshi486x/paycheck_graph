@@ -1,7 +1,7 @@
 """Define full-analyser model"""
 import pprint as pp
 
-from models import pdf_reader, recording, tailor
+from models import pdf_reader, recording, tailor, visualizing
 from views import console
 
 class FullDataModel(object):
@@ -78,6 +78,12 @@ class FullAnalyser(object):
             if self.status:
                 recording_model.record_data_to_mongo(text_tailor.dict_data)
 
-    def visualize_in_graph(self):
-        pass
+    def visualize_income_timechart(self):
+        """TODO: import and modify this func to enable walkthrough
+        Add demo dir """
+
+        visual = visualizing.VisualizingModel(None)
+        visual.create_base_table()
+        visual.sort_table()
+        visual.save_graph_to_image()
 
