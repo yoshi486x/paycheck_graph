@@ -103,9 +103,9 @@ class VisualizingModel(object):
         file_path = pathlib.Path(GRAPHS_DIR_PATH, self.graphs)
         ax = self.dataframe.plot(
             figsize=(15, 10), kind='bar', stacked=True, grid=True, 
-            title='Income Timeline(2018/09 - 2019/12)',
+            title='Income breakdown (2018/09 - 2019/12)',
             )
-        ax.set_ylabel('Income')
+        ax.set_ylabel('amount of income')
         fig = ax.get_figure()
         fig.savefig(file_path)
 
