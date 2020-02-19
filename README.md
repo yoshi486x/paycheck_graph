@@ -5,6 +5,8 @@
 [![Generic badge](https://img.shields.io/badge/python-v3.7.4-336E9F.svg)](https://shields.io/)
 [![Generic badge](https://img.shields.io/badge/MongoDB-v4.2.3-14AA52.svg)](https://shields.io/)
 
+![Theme image](demo/output/income_timechart.png)
+
 <!-- Put Sample Image Here -->
 ## Getting Started
 
@@ -42,6 +44,10 @@ Run <br>
 ```bash
 $ python main.py
 ```
+Follow the dialog accordingly.
+
+### Check your graph
+If application runs successfully, the graph would be outputted at `data/output/graphs_and_charts`.
 
 
 ## Built With
