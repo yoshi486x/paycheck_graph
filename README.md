@@ -28,7 +28,7 @@ Install MongoDB to your local environment.
 
 Git clone this repository.
 ```bash
-$ git clone https://github.com/yoshiki-11/paycheck_analytics.git
+$ git clone https://github.com/yoshiki-o0/paycheck_graph.git
 ```
 
 Pip install *requirements.txt*.
