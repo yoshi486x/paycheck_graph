@@ -7,7 +7,7 @@ import pathlib
 import pprint
 import re
 
-# pp = pprint.PrettyPrinter(indent=4)
+pp = pprint.PrettyPrinter(indent=2)
 TEXT_DIR_PATH = 'data/output/temp'
 
 class DataModel(object):
@@ -52,7 +52,8 @@ class PartitionerModel(DataModel):
         self.list_data = list_data
 
     def partition_data(self):
-        """Partition one list of data into 4 small lists"""
+        """Partition one list of data into 4 small lists
+        Look at this blocks when partitioning is doing something wrong."""
 
         self.block1 = self.list_data[self.ankerIndexes[0]:self.ankerIndexes[1]]
         self.block2 = self.list_data[self.ankerIndexes[1]:self.ankerIndexes[2]]
@@ -132,7 +133,12 @@ class PartitionerModel(DataModel):
                 continue
             elif item in sub_column_names:
                 section_anker_name = self.block2[j+1]
-                section_anker_names.append(section_anker_name)
+                """ Store anker if the section isn't empty. Empty section will 
+                eturn int or float from next section."""
+                if type(section_anker_name) is str:
+                    section_anker_names.append(section_anker_name)
+                else:
+                    pass
             elif type(item) == int or type(item) == float:
                 values.append(item)
             else:
@@ -148,7 +154,10 @@ class PartitionerModel(DataModel):
         """Insert func for removing 差引支給額"""
         keys.append(None)
         deducted_income_value = self.dict_data['summary']['差引支給額']
-        values.remove(deducted_income_value)
+        try:
+            values.remove(deducted_income_value)
+        except:
+            pass
 
         """Combine and partition in sub-blocks
         return: List->section_anker_indexes """
@@ -180,6 +189,7 @@ class PartitionerModel(DataModel):
             sliced_keys = keys[head:tail]
             sliced_values = values[head:tail]
             self.update_datamodel(category, sliced_keys, sliced_values)
+        # pp.pprint(self.dict_data)
         return
 
     def update_datamodel(self, name, keys, values):
