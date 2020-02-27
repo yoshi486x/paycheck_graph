@@ -67,6 +67,7 @@ class FullAnalyser(object):
             text_tailor.define_partitions()
             text_tailor.partition_data()
             text_tailor.self_correlate_block1()
+            # pp.pprint(text_tailor.dict_data)
             text_tailor.self_correlate_block2()
             text_tailor.value_format_date()
             text_tailor.value_format_deductions()
