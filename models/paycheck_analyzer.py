@@ -5,7 +5,7 @@ from models import pdf_reader, recording, tailor, visualizing
 from views import console
 
 
-class Analyzer(object):
+class AnalyzerModel(object):
     """Handle data model on anylysing process
     Steps:
     1. Get all pdf file name for paycheck
@@ -84,3 +84,33 @@ class Analyzer(object):
         visual.sort_table()
         visual.save_graph_to_image()
 
+
+# class FullAnalyzer(AnalyzerModel):
+#     def __init__(self, db='MongoDB', filenames=None, speak_color='green', status=None):
+#         self.db = db
+#         self.filenames = filenames
+#         self.speak_color = speak_color
+#         self.status = status
+
+#     def ask_for_db_activation(self):
+#         while True:
+#             template = console.get_template('db_activation.txt', self.speak_color)
+#             is_yes = input(template.substitute({
+#                 'db': self.db}))
+
+#             if is_yes.lower() == 'y' or is_yes.lower() == 'yes':
+#                 self.status = True
+#                 break
+
+#             if is_yes.lower() == 'n' or is_yes.lower() == 'no':
+#                 self.status = False
+#                 break
+
+#     def visualize_income_timechart(self):
+#         """TODO: import and modify this func to enable walkthrough
+#         Add demo dir """
+
+#         visual = visualizing.VisualizingModel(None)
+#         visual.create_base_table()
+#         visual.sort_table()
+#         visual.save_graph_to_image()
