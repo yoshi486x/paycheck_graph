@@ -102,7 +102,7 @@ class VisualizingModel(object):
     def save_graph_to_image(self):
         file_path = pathlib.Path(GRAPHS_DIR_PATH, self.graphs)
         ax = self.dataframe.plot(
-            figsize=(15, 10), kind='bar', stacked=True, grid=True, 
+            figsize=(15, 10), kind='bar', stacked=True, grid=True, sharey=False,
             title='Income breakdown (2018/09 - 2019/12) **Sample data was used for this graph**',
             )
         ax.set_ylabel('amount of income')
