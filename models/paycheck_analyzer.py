@@ -30,13 +30,6 @@ class AnalyzerModel(object):
             pdfReader.convert_pdf_to_txt(input_file, output_file)
 
     def format_text_data_to_analysable_dict(self):
-        """Create instance for Recording models (MongoDB)"""
-        mongo_model = recording.MongoModel(None)
-        if not mongo_model.get_mongo_profile():
-            print('{} seems to be not running.'.format(self.db))
-            self.status = False
-        else:
-            self.status = True
 
         """Parameter tuning for debuging use"""
         # filenames = self.filenames[1:2]
@@ -85,6 +78,16 @@ class FullAnalyzer(AnalyzerModel):
             if is_yes.lower() == 'n' or is_yes.lower() == 'no':
                 self.status = False
                 break
+    
+    def check_mongodb_activation(self):
+        """Create instance for Recording models (MongoDB)"""
+        mongo_model = recording.MongoModel(None)
+        if not mongo_model.get_mongo_profile():
+            template = console.get_template('db_response.txt', self.speak_color)
+            print(template.substitute({'db': self.db}))
+            self.status = False
+        else:
+            self.status = True
 
     def visualize_income_timechart(self):
         """TODO: import and modify this func to enable walkthrough

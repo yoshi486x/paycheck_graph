@@ -28,14 +28,16 @@ PDF_FILENAME_NAME = 'FILENAME'
 #         self.load_data()
 
 
-class PdfModel(object):
-    """Base pdf model"""
-    def __init__(self, filenames):
-        self.filenames = filenames
+# class PdfModel(object):
+#     """Base pdf model
+#     TODO: Make input a pdf filename and use that name to create txt dir and other names"""
 
-class PdfReader(PdfModel):
-    def __init__(self, filenames=None, base_dir=None):
-        super().__init__(filenames=filenames)
+#     def __init__(self, filenames):
+#         self.filenames = filenames
+
+
+class PdfReader(object):
+    def __init__(self, base_dir=None):
         if not base_dir:
             base_dir = self.get_base_dir_path()
         self.base_dir = base_dir
@@ -61,6 +63,12 @@ class PdfReader(PdfModel):
         output_filename, _ = os.path.splitext(filename)
         return pathlib.Path(output_full_dir_path, output_filename).with_suffix(suffix)
 
+    def get_txt_(self, filename, suffix='.txt'):
+        """Organize output txt path info"""
+        output_full_dir_path = pathlib.Path(self.base_dir, OUTPUT_DIR_PATH)
+        output_filename, _ = os.path.splitext(filename)
+        return pathlib.Path(output_full_dir_path, output_filename).with_suffix(suffix)
+
 
 class InputQueue(object):
     def __init__(self, base_dir=None, all_files=None, pdf_files=None):
@@ -79,6 +87,7 @@ class InputQueue(object):
         pdf_full_dir_path = pathlib.Path(self.base_dir, PDF_DIR_PATH)
         self.pdf_files = os.listdir(pdf_full_dir_path)
 
+        # Extract filename without suffix
         for item in os.listdir(pdf_full_dir_path):
             filename, _ = os.path.splitext(item)
             all_files.append(filename)
@@ -87,9 +96,13 @@ class InputQueue(object):
 
 
 def main():
-    inputQueue = InputQueue()
-    filenames = inputQueue.load_pdf_filenames()
-    print('pdf_files:', inputQueue.pdf_files)
+    # inputQueue = InputQueue()
+    # filenames = inputQueue.load_pdf_filenames()
+    # print('pdf_files:', inputQueue.pdf_files)
+    # print('all_files:', inputQueue.all_files)
+
+    reader = PdfReader()
+    reader.get_txt_dir
 
 if __name__ == "__main__":
     main()
