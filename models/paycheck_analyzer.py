@@ -19,10 +19,15 @@ class AnalyzerModel(object):
 
     def convert_pdf_into_text(self):
         pdfReader = pdf_reader.PdfReader()
-        pdfReader.load_pdf_filenames()
-        self.filenames = sorted(pdfReader.filenames)
-        for filename in self.filenames:
-            pdfReader.convert_pdf_to_txt(filename)
+        # pdfReader.load_pdf_filenames()
+        # self.filenames = sorted(pdfReader.filenames)
+        inputQueue = pdf_reader.InputQueue()
+        all_files = inputQueue.load_pdf_filenames()
+        self.filenames = all_files
+        for filename in all_files:
+            input_file = pdfReader.get_pdf_dir(filename)
+            output_file = pdfReader.get_txt_dir(filename)
+            pdfReader.convert_pdf_to_txt(input_file, output_file)
 
     def format_text_data_to_analysable_dict(self):
         """Create instance for Recording models (MongoDB)"""
