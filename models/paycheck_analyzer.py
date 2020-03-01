@@ -12,20 +12,12 @@ class AnalyzerModel(object):
     1. Get all pdf file name for paycheck
     2. for each file, proceed Extract and Transform
     """
-    def __init__(self, db='MongoDB', filenames=None, speak_color='green', 
+    def __init__(self, 
         status=None, pdf_files=None, txt_files=None, **kwargs):
-        self.db = db
-        self.filenames = filenames
-        self.speak_color = speak_color
         self.status = status
-        self.pdf_files = pdf_files
-        self.txt_files = txt_files
+        self.pdf_files = pdf_files# Not implemented yet
+        self.txt_files = txt_files# Not implemented yet
         self.dict_data = collections.defaultdict()
-
-    def create_input_queue(self):
-        inputQueue = pdf_reader.InputQueue()
-        all_files = inputQueue.load_pdf_filenames()
-        self.filenames = all_files
 
     def convert_pdf_into_text(self, filename):
         
@@ -61,8 +53,11 @@ class AnalyzerModel(object):
 
 class FullAnalyzer(AnalyzerModel):
 
-    def __init__(self):
+    def __init__(self, db='MongoDB', speak_color='green', filenames=None):
         super().__init__()
+        self.db = db
+        self.speak_color = speak_color
+        self.filenames = filenames
 
     def ask_for_db_activation(self):
         while True:
@@ -88,6 +83,12 @@ class FullAnalyzer(AnalyzerModel):
             self.status = False
         else:
             self.status = True
+
+    def create_input_queue(self):
+        """Create queue of processing data while extracting filenames"""
+
+        inputQueue = pdf_reader.InputQueue()
+        self.filenames = inputQueue.load_pdf_filenames()
 
     def process_all_data(self):
         """Use AnalyzerModel to process all PDF data"""
