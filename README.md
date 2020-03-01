@@ -63,3 +63,6 @@ If the application runs successfully, the graph would be outputted at `data/outp
 ## Polished With
 * pepe8, flake8, (Comming soon) pylint
 * (Comming soon) Unittest
+
+## Licence
+PaycheckGraph is freely available for free non-commercial use and may be redistributed under conditions. Please, see the licence for further details.
