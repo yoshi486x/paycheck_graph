@@ -94,6 +94,13 @@ class FullAnalyzer(AnalyzerModel):
         else:
             self.status = True
 
+    def process_all_data(self):
+        """Use AnalyzerModel to process all PDF data"""
+        
+        self.create_input_queue()
+        self.convert_pdf_into_text()
+        self.format_text_data_to_analysable_dict()
+
     def visualize_income_timechart(self):
         """TODO: import and modify this func to enable walkthrough
         Add demo dir """
