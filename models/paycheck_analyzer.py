@@ -35,7 +35,7 @@ class AnalyzerModel(object):
         pdfReader.convert_pdf_to_txt(input_file, output_file)
         # Extract filename and txt_file, here.
 
-    def format_text_data_to_analysable_dict(self, filename):
+    def convert_text_into_dict(self, filename):
         """Transform txt data to dict format"""
 
         text_tailor = tailor.PartitionerModel()
@@ -95,7 +95,7 @@ class FullAnalyzer(AnalyzerModel):
         self.create_input_queue()
         for filename in self.filenames:
             self.convert_pdf_into_text(filename)
-            self.format_text_data_to_analysable_dict(filename)
+            self.convert_text_into_dict(filename)
             self.record_dict_data(filename)
 
     def visualize_income_timechart(self):
