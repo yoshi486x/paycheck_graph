@@ -1,4 +1,5 @@
 """Define full-analyser model"""
+import collections
 import pprint as pp
 
 from models import pdf_reader, recording, tailor, visualizing
@@ -12,57 +13,50 @@ class AnalyzerModel(object):
     2. for each file, proceed Extract and Transform
     """
     def __init__(self, db='MongoDB', filenames=None, speak_color='green', 
-        status=None, pdf_files=None, txt_files=None):
+        status=None, pdf_files=None, txt_files=None, **kwargs):
         self.db = db
         self.filenames = filenames
         self.speak_color = speak_color
         self.status = status
         self.pdf_files = pdf_files
         self.txt_files = txt_files
+        self.dict_data = collections.defaultdict()
 
     def create_input_queue(self):
         inputQueue = pdf_reader.InputQueue()
         all_files = inputQueue.load_pdf_filenames()
         self.filenames = all_files
 
-    def convert_pdf_into_text(self):
+    def convert_pdf_into_text(self, filename):
         
-        for filename in self.filenames:
-            pdfReader = pdf_reader.PdfReader()
-            input_file = pdfReader.get_pdf_dir(filename)
-            output_file = pdfReader.get_txt_dir(filename)
-            pdfReader.convert_pdf_to_txt(input_file, output_file)
-            # Extract filename and txt_file, here.
+        pdfReader = pdf_reader.PdfReader()
+        input_file = pdfReader.get_pdf_dir(filename)
+        output_file = pdfReader.get_txt_dir(filename)
+        pdfReader.convert_pdf_to_txt(input_file, output_file)
+        # Extract filename and txt_file, here.
 
-    def format_text_data_to_analysable_dict(self):
+    def format_text_data_to_analysable_dict(self, filename):
+        """Transform txt data to dict format"""
 
-        """Parameter tuning for debuging use"""
-        # filenames = self.filenames[1:2]
-        filenames = self.filenames
+        text_tailor = tailor.PartitionerModel()
+        text_tailor.load_data(filename)
+        text_tailor.value_format_digit()
+        text_tailor.define_partitions()
+        text_tailor.partition_data()
+        text_tailor.self_correlate_block1()
+        text_tailor.self_correlate_block2()
+        text_tailor.value_format_date()
+        text_tailor.value_format_deductions()
+        text_tailor.value_format_remove_dot_in_keys()
+        self.dict_data = text_tailor.dict_data
 
-        """Main analyse model"""
-        for filename in filenames:
-            """Extract and Transform text data
-            output: MongoDB, data/output/json
-            """
-            # Transform text data into dict format
-            text_tailor = tailor.PartitionerModel()
-            text_tailor.load_data(filename)
-            text_tailor.value_format_digit()
-            text_tailor.define_partitions()
-            text_tailor.partition_data()
-            text_tailor.self_correlate_block1()
-            # pp.pprint(text_tailor.dict_data)
-            text_tailor.self_correlate_block2()
-            text_tailor.value_format_date()
-            text_tailor.value_format_deductions()
-            text_tailor.value_format_remove_dot_in_keys()
+    def record_dict_data(self, filename):
+        """Record dict_data to multiple file/db formats (json, mongodb, mysql)"""
 
-            # Register data to db and json. Order must be json to db to avoid erro 
-            recording_model = recording.RecordingModel(filename, self.status)
-            recording_model.record_data_in_json(text_tailor.dict_data)
-            if self.status:
-                recording_model.record_data_to_mongo(text_tailor.dict_data)
+        recording_model = recording.RecordingModel(filename, self.status)
+        recording_model.record_data_in_json(self.dict_data)
+        if self.status:
+            recording_model.record_data_to_mongo(self.dict_data)
 
 
 class FullAnalyzer(AnalyzerModel):
@@ -86,6 +80,7 @@ class FullAnalyzer(AnalyzerModel):
     
     def check_mongodb_activation(self):
         """Create instance for Recording models (MongoDB)"""
+
         mongo_model = recording.MongoModel(None)
         if not mongo_model.get_mongo_profile():
             template = console.get_template('db_response.txt', self.speak_color)
@@ -98,8 +93,10 @@ class FullAnalyzer(AnalyzerModel):
         """Use AnalyzerModel to process all PDF data"""
         
         self.create_input_queue()
-        self.convert_pdf_into_text()
-        self.format_text_data_to_analysable_dict()
+        for filename in self.filenames:
+            self.convert_pdf_into_text(filename)
+            self.format_text_data_to_analysable_dict(filename)
+            self.record_dict_data(filename)
 
     def visualize_income_timechart(self):
         """TODO: import and modify this func to enable walkthrough
