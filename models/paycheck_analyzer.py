@@ -104,7 +104,9 @@ class FullAnalyzer(AnalyzerModel):
 
         visual = visualizing.VisualizingModel(None)
         visual.create_base_table()
+        visual.rename_columns()
         visual.sort_table()
+        visual.camouflage_values(True)
         visual.save_graph_to_image()
 
         # dialog
