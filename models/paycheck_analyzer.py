@@ -4,52 +4,37 @@ import pprint as pp
 from models import pdf_reader, recording, tailor, visualizing
 from views import console
 
-class FullDataModel(object):
-    def __init__(self, data=list):
-        self.data = data
 
-class FullAnalyser(object):
+class AnalyzerModel(object):
     """Handle data model on anylysing process
     Steps:
     1. Get all pdf file name for paycheck
     2. for each file, proceed Extract and Transform
     """
-    def __init__(self, db='MongoDB', filenames=None, speak_color='green', status=None):
+    def __init__(self, db='MongoDB', filenames=None, speak_color='green', 
+        status=None, pdf_files=None, txt_files=None):
         self.db = db
         self.filenames = filenames
         self.speak_color = speak_color
         self.status = status
+        self.pdf_files = pdf_files
+        self.txt_files = txt_files
 
-    def ask_for_db_activation(self):
-        while True:
-            # template = console.get_template('hello.txt', self.speak_color)
-            template = console.get_template('db_activation.txt', self.speak_color)
-            is_yes = input(template.substitute({
-                'db': self.db}))
-
-            if is_yes.lower() == 'y' or is_yes.lower() == 'yes':
-                self.status = True
-                break
-
-            if is_yes.lower() == 'n' or is_yes.lower() == 'no':
-                self.status = False
-                break
+    def create_input_queue(self):
+        inputQueue = pdf_reader.InputQueue()
+        all_files = inputQueue.load_pdf_filenames()
+        self.filenames = all_files
 
     def convert_pdf_into_text(self):
-        pdfReader = pdf_reader.PdfReader()
-        pdfReader.load_pdf_filenames()
-        self.filenames = sorted(pdfReader.filenames)
+        
         for filename in self.filenames:
-            pdfReader.convert_pdf_to_txt(filename)
+            pdfReader = pdf_reader.PdfReader()
+            input_file = pdfReader.get_pdf_dir(filename)
+            output_file = pdfReader.get_txt_dir(filename)
+            pdfReader.convert_pdf_to_txt(input_file, output_file)
+            # Extract filename and txt_file, here.
 
     def format_text_data_to_analysable_dict(self):
-        """Create instance for Recording models (MongoDB)"""
-        mongo_model = recording.MongoModel(None)
-        if not mongo_model.get_mongo_profile():
-            print('{} seems to be not running.'.format(self.db))
-            self.status = False
-        else:
-            self.status = True
 
         """Parameter tuning for debuging use"""
         # filenames = self.filenames[1:2]
@@ -79,6 +64,36 @@ class FullAnalyser(object):
             if self.status:
                 recording_model.record_data_to_mongo(text_tailor.dict_data)
 
+
+class FullAnalyzer(AnalyzerModel):
+
+    def __init__(self):
+        super().__init__()
+
+    def ask_for_db_activation(self):
+        while True:
+            template = console.get_template('db_activation.txt', self.speak_color)
+            is_yes = input(template.substitute({
+                'db': self.db}))
+
+            if is_yes.lower() == 'y' or is_yes.lower() == 'yes':
+                self.status = True
+                break
+
+            if is_yes.lower() == 'n' or is_yes.lower() == 'no':
+                self.status = False
+                break
+    
+    def check_mongodb_activation(self):
+        """Create instance for Recording models (MongoDB)"""
+        mongo_model = recording.MongoModel(None)
+        if not mongo_model.get_mongo_profile():
+            template = console.get_template('db_response.txt', self.speak_color)
+            print(template.substitute({'db': self.db}))
+            self.status = False
+        else:
+            self.status = True
+
     def visualize_income_timechart(self):
         """TODO: import and modify this func to enable walkthrough
         Add demo dir """
@@ -87,4 +102,3 @@ class FullAnalyser(object):
         visual.create_base_table()
         visual.sort_table()
         visual.save_graph_to_image()
-
