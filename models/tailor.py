@@ -1,13 +1,11 @@
 import collections
-import csv
 import datetime
-import math
 import os
 import pathlib
-import pprint
 import re
 
-# pp = pprint.PrettyPrinter(indent=4)
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
 TEXT_DIR_PATH = 'data/output/temp'
 
 class DataModel(object):
@@ -27,13 +25,6 @@ class PartitionerModel(DataModel):
         self.ankerIndexes = [] * block_count
         self.block1, self.block2, self.block3 = list, list, list
 
-    def define_partitions(self):
-        """init ankerIndex for start and end"""
-        self.ankerIndexes.append(0)
-        for anker in self.ankers:
-            self.ankerIndexes.append(self.list_data.index(anker))
-        self.ankerIndexes.append(len(self.list_data))
-
     def get_base_dir_path(self):
         return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -51,12 +42,32 @@ class PartitionerModel(DataModel):
 
         self.list_data = list_data
 
+    def value_format_digit(self):
+        the_data = self.list_data
+        for j, item in enumerate(the_data):
+            if type(item) != (int or float):
+                if item.replace(',', '').isdigit() is True:
+                    the_data[j] = int(item.replace(',', ''))
+                elif item.replace('.', '').isdigit() is True:
+                    the_data[j] = float(item)
+
+    def define_partitions(self):
+        """init ankerIndex for start and end"""
+        self.ankerIndexes.append(0)
+        for anker in self.ankers:
+            self.ankerIndexes.append(self.list_data.index(anker))
+        self.ankerIndexes.append(len(self.list_data))
+
     def partition_data(self):
-        """Partition one list of data into 4 small lists"""
+        """Partition one list of data into 4 small lists
+        Look at this blocks when partitioning is doing something wrong."""
 
         self.block1 = self.list_data[self.ankerIndexes[0]:self.ankerIndexes[1]]
         self.block2 = self.list_data[self.ankerIndexes[1]:self.ankerIndexes[2]]
         self.block3 = self.list_data[self.ankerIndexes[2]:self.ankerIndexes[3]]
+
+    def update_datamodel(self, name, keys, values):
+        self.dict_data[name] = dict(zip(keys, values))
 
     def self_correlate_block1(self):
         """Update summary and profile categories."""
@@ -112,7 +123,6 @@ class PartitionerModel(DataModel):
         self.dict_data[category2].update(
             {deducted_income_key: deducted_income_value})
         # pp.pprint(self.dict_data)
-        return
 
     def self_correlate_block2(self):
         """Initialize paras. Modification needed to simplify code."""
@@ -132,7 +142,12 @@ class PartitionerModel(DataModel):
                 continue
             elif item in sub_column_names:
                 section_anker_name = self.block2[j+1]
-                section_anker_names.append(section_anker_name)
+                """ Store anker if the section isn't empty. Empty section will 
+                eturn int or float from next section."""
+                if type(section_anker_name) is str:
+                    section_anker_names.append(section_anker_name)
+                else:
+                    pass
             elif type(item) == int or type(item) == float:
                 values.append(item)
             else:
@@ -148,7 +163,10 @@ class PartitionerModel(DataModel):
         """Insert func for removing 差引支給額"""
         keys.append(None)
         deducted_income_value = self.dict_data['summary']['差引支給額']
-        values.remove(deducted_income_value)
+        try:
+            values.remove(deducted_income_value)
+        except:
+            pass
 
         """Combine and partition in sub-blocks
         return: List->section_anker_indexes """
@@ -180,10 +198,7 @@ class PartitionerModel(DataModel):
             sliced_keys = keys[head:tail]
             sliced_values = values[head:tail]
             self.update_datamodel(category, sliced_keys, sliced_values)
-        return
-
-    def update_datamodel(self, name, keys, values):
-        self.dict_data[name] = dict(zip(keys, values))
+        # pp.pprint(self.dict_data)
 
     def value_format_date(self):
         thisdate = self.dict_data['summary']['支給年月日']
@@ -192,17 +207,6 @@ class PartitionerModel(DataModel):
     def value_format_deductions(self, category='deductions'):
         for key, value in self.dict_data[category].items():
             self.dict_data[category][key] = -value
-
-    """TODO rstrip the check_type and remove space in between"""
-    
-    def value_format_digit(self):
-        the_data = self.list_data
-        for j, item in enumerate(the_data):
-            if type(item) != (int or float):
-                if item.replace(',', '').isdigit() is True:
-                    the_data[j] = int(item.replace(',', ''))
-                elif item.replace('.', '').isdigit() is True:
-                    the_data[j] = float(item)
 
     def value_format_remove_dot_in_keys(self, category='attendances', new_pairs=[], initializer={}):
         """Remove dot from dict keys

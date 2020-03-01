@@ -8,10 +8,15 @@
 <!-- ![Theme image](demo/output/income_timechart.png) -->
 ![Theme image](images/income_timechart.jpg)
 
-<!-- Put Sample Image Here -->
+## Roadmap
+* [v1.0.0] Export paycheck data to graph image. 
+* [v1.1.0] Store data to MySQL. 
+* [v1.2.0] Visualize paycheck data using Grafana.
+* [new] Create iOS App version. 
+
 ## Getting Started
 <!-- TODO: Update below dates every time you commit!  -->
-**Update(February 25, 2020)**: Paycheck at where I work is published by a PDF file. Just reading them, might be enough for checking errors, but do you not want to see *trends* over time?
+**Update(March 1, 2020)**: Paycheck at where I work is published by a PDF file. Just reading them, might be enough for checking errors, but do you not want to see *trends* over time?
 
 This package creates statical graphs of your paycheck! Download it and try putting your pdf file in the suggested folder where instructed below.
 
@@ -58,3 +63,6 @@ If the application runs successfully, the graph would be outputted at `data/outp
 ## Polished With
 * pepe8, flake8, (Comming soon) pylint
 * (Comming soon) Unittest
+
+## Licence
+PaycheckGraph is freely available for free non-commercial use and may be redistributed under conditions. Please, see the licence for further details.

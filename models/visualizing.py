@@ -34,45 +34,6 @@ class VisualizingModel(object):
         self.figure = figure
         self.graphs = INCOME_GRAPH_NAME
 
-    def create_base_table(self):
-        """Create base tablefor """
-        df = self.dataframe
-        dataframes = []
-
-        # Loop
-        for filename in self.filenames:
-            dates, keys, values, indexes = [], [], [], []
-
-            file_path = pathlib.Path(JSON_DIR_PATH, filename)
-            with open(file_path, 'r') as json_file:
-                data = json.load(json_file)
-            
-            """Single key extraction"""
-            dates, keys, values = [], [], []
-            date = data['summary']['支給年月日']
-            for key, value in data['incomes'].items():
-                values.append(value)
-                keys.append(key)
-                dates.append(date)
-            df = pd.DataFrame({'date': dates, 'type': keys, 'income': values})
-            dataframes.append(df)
-
-        # Combine tables of each json file
-        df = pd.concat(dataframes)
-        df = df.pivot(index='date', columns='type', values='income')
-
-        """TODO Maybe this func should be placed separately"""
-        try:
-            try:
-                import camouflage
-            except:
-                from models import camouflage
-            df = camouflage.camouflage(df)
-        except:
-            pass
-        
-        self.dataframe = df
-
     def get_base_dir_path(self):
         return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -99,31 +60,85 @@ class VisualizingModel(object):
                 filenames.append(item)
         return filenames
 
-    def save_graph_to_image(self):
-        file_path = pathlib.Path(GRAPHS_DIR_PATH, self.graphs)
-        ax = self.dataframe.plot(
-            figsize=(15, 10), kind='bar', stacked=True, grid=True, 
-            title='Income breakdown (2018/09 - 2019/12) **Sample data was used for this graph**',
-            )
-        ax.set_ylabel('amount of income')
-        fig = ax.get_figure()
-        fig.savefig(file_path)
+    def create_base_table(self):
+        """Create base tablefor """
+        df = self.dataframe
+        dataframes = []
+
+        # Loop
+        for filename in self.filenames:
+            dates, keys, values, indexes = [], [], [], []
+
+            file_path = pathlib.Path(JSON_DIR_PATH, filename)
+            with open(file_path, 'r') as json_file:
+                data = json.load(json_file)
+            
+            """Single key extraction"""
+            dates, keys, values = [], [], []
+            date = data['summary']['支給年月日']
+            for key, value in data['incomes'].items():
+                values.append(value)
+                keys.append(key)
+                dates.append(date)
+            df = pd.DataFrame({'date': dates, 'type': keys, 'income': values})
+            dataframes.append(df)
+
+        # Combine tables of each json file
+        df = pd.concat(dataframes)
+        df = df.pivot(index='date', columns='type', values='income')
+        
+        self.dataframe = df
+
+    def rename_columns(self):
+        renames = ['Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot',
+             'Golf', 'Hotel', 'India', 'Juliett', 'Kilo', 'LIma', 'Mike', 
+             'November', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra']
+        df = self.dataframe
+
+        col_num = len(df.columns)
+        renames = renames[:col_num]
+        col_dict = dict(zip(df.columns, renames))
+        self.dataframe = df.rename(columns=col_dict)
+
+    def camouflage_values(self, camouflage=False):
+
+        if camouflage is True:
+            try:
+                from models import camouflage
+            except:
+                try:
+                    import camouflage
+                except:
+                    return
+            self.dataframe = camouflage.camouflage(self.dataframe)
 
     def sort_table(self):
 
         try:
-            import sorting
-        except:
             from models import sorting
-        
+        except:
+            import sorting
+
         df = sorting.sort_table(self.dataframe)
         self.dataframe = df
+
+    def save_graph_to_image(self):
+        file_path = pathlib.Path(GRAPHS_DIR_PATH, self.graphs)
+        ax = self.dataframe.plot(
+            figsize=(15, 10), kind='bar', stacked=True, grid=True, sharey=False,
+            title='Income breakdown **Sample data was used for this graph**',
+            )
+        ax.set_ylabel('amount of income [yen]')
+        fig = ax.get_figure()
+        fig.savefig(file_path)
 
 
 def main():
     visual = VisualizingModel(None)
     visual.create_base_table()
+    visual.rename_columns()
     visual.sort_table()
+    visual.camouflage_values(True)
     visual.save_graph_to_image()
 
 
