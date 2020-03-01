@@ -113,7 +113,7 @@ class VisualizingModel(object):
         file_path = pathlib.Path(GRAPHS_DIR_PATH, self.graphs)
         ax = self.dataframe.plot(
             figsize=(15, 10), kind='bar', stacked=True, grid=True, sharey=False,
-            title='Income breakdown (2018/09 - 2019/12) **Sample data was used for this graph**',
+            title='Income breakdown **Sample data was used for this graph**',
             )
         ax.set_ylabel('amount of income')
         fig = ax.get_figure()
