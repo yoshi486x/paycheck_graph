@@ -11,23 +11,28 @@ class AnalyzerModel(object):
     1. Get all pdf file name for paycheck
     2. for each file, proceed Extract and Transform
     """
-    def __init__(self, db='MongoDB', filenames=None, speak_color='green', status=None):
+    def __init__(self, db='MongoDB', filenames=None, speak_color='green', 
+        status=None, pdf_files=None, txt_files=None):
         self.db = db
         self.filenames = filenames
         self.speak_color = speak_color
         self.status = status
+        self.pdf_files = pdf_files
+        self.txt_files = txt_files
 
-    def convert_pdf_into_text(self):
-        pdfReader = pdf_reader.PdfReader()
-        # pdfReader.load_pdf_filenames()
-        # self.filenames = sorted(pdfReader.filenames)
+    def create_input_queue(self):
         inputQueue = pdf_reader.InputQueue()
         all_files = inputQueue.load_pdf_filenames()
         self.filenames = all_files
-        for filename in all_files:
+
+    def convert_pdf_into_text(self):
+        
+        for filename in self.filenames:
+            pdfReader = pdf_reader.PdfReader()
             input_file = pdfReader.get_pdf_dir(filename)
             output_file = pdfReader.get_txt_dir(filename)
             pdfReader.convert_pdf_to_txt(input_file, output_file)
+            # Extract filename and txt_file, here.
 
     def format_text_data_to_analysable_dict(self):
 

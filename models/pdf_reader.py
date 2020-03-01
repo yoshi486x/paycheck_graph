@@ -9,32 +9,6 @@ OUTPUT_DIR_PATH = 'data/output/temp'
 PDF_DIR_PATH = 'data/pdf'
 PDF_FILENAME_NAME = 'FILENAME'
 
-# class CsvModel(object):
-#     """Base csv model."""
-#     def __init__(self, csv_file):
-#         self.csv_file = csv_file
-#         if not os.path.exists(csv_file):
-#             pathlib.Path(csv_file).touch()
-
-
-# class RankingModel(CsvModel):
-#     """Definition of class that generates ranking model to write to CSV"""
-#     def __init__(self, csv_file=None, *args, **kwargs):
-#         if not csv_file:
-#             csv_file = self.get_csv_file_path()
-#         super().__init__(csv_file, *args, **kwargs)
-#         self.column = [RANKING_COLUMN_NAME, RANKING_COLUMN_COUNT]
-#         self.data = collections.defaultdict(int)
-#         self.load_data()
-
-
-# class PdfModel(object):
-#     """Base pdf model
-#     TODO: Make input a pdf filename and use that name to create txt dir and other names"""
-
-#     def __init__(self, filenames):
-#         self.filenames = filenames
-
 
 class PdfReader(object):
     def __init__(self, base_dir=None):
