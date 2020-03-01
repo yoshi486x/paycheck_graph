@@ -106,3 +106,7 @@ class FullAnalyzer(AnalyzerModel):
         visual.create_base_table()
         visual.sort_table()
         visual.save_graph_to_image()
+
+        # dialog
+        template = console.get_template('process_finished.txt', self.speak_color)
+        print(template.substitute())
