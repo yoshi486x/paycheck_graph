@@ -1,4 +1,4 @@
-"""Define full-analyser model"""
+"""Define full-analyzer model"""
 import collections
 import pprint as pp
 
@@ -7,7 +7,7 @@ from views import console
 
 
 class AnalyzerModel(object):
-    """Handle data model on anylysing process
+    """Handle data model on analyzing process
     Steps:
     1. Get all pdf file name for paycheck
     2. for each file, proceed Extract and Transform
@@ -100,8 +100,7 @@ class FullAnalyzer(AnalyzerModel):
             self.record_dict_data(filename)
 
     def visualize_income_timechart(self):
-        """TODO: import and modify this func to enable walkthrough
-        Add demo dir """
+        """Visualize data from json file and export a graph image """
 
         visual = visualizing.VisualizingModel(None)
         visual.create_base_table()

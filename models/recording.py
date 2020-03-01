@@ -12,7 +12,7 @@ CLIENT_HOST = 'mongodb://localhost:27017/'
 CLIENT_NAME = 'test_database'
 JSON_DIR_PATH = 'data/output/json'
 
-# pp = pprint.PrettyPrinter(indent=4, width=40)
+
 class JsonModel(object):
     def __init__(self, filename, json_file):
         if not json_file:
@@ -66,8 +66,6 @@ class RecordingModel(JsonModel, MongoModel):
         MongoModel.__init__(self, db)
         if mongo_status:
             self.get_mongo_profile()
-
-    # def export_json(self, dir_data):
 
     def record_data_to_mongo(self, dict_data):
         """Store dict_data to MongoDB"""

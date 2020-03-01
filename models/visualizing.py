@@ -34,6 +34,32 @@ class VisualizingModel(object):
         self.figure = figure
         self.graphs = INCOME_GRAPH_NAME
 
+    def get_base_dir_path(self):
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    def get_json_file_path(self):
+        """Set json file path.
+        Use json path if set in settings, otherwise use default.
+        
+        :type filename: str
+        :rtype json_file_path: str
+        """
+        json_file_path = None
+        try:
+            import settings
+            if settings.JSON_FILE_PATH:
+                json_file_path = settings.JSON_FILE_PATH
+        except ImportError:
+            pass
+
+        filenames = []
+        json_full_dir_path = pathlib.Path(self.base_dir, JSON_DIR_PATH)
+
+        if json_file_path is None:
+            for item in os.listdir(json_full_dir_path):
+                filenames.append(item)
+        return filenames
+
     def create_base_table(self):
         """Create base tablefor """
         df = self.dataframe
@@ -73,31 +99,15 @@ class VisualizingModel(object):
         
         self.dataframe = df
 
-    def get_base_dir_path(self):
-        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    def sort_table(self):
 
-    def get_json_file_path(self):
-        """Set json file path.
-        Use json path if set in settings, otherwise use default.
-        
-        :type filename: str
-        :rtype json_file_path: str
-        """
-        json_file_path = None
         try:
-            import settings
-            if settings.JSON_FILE_PATH:
-                json_file_path = settings.JSON_FILE_PATH
-        except ImportError:
-            pass
-
-        filenames = []
-        json_full_dir_path = pathlib.Path(self.base_dir, JSON_DIR_PATH)
-
-        if json_file_path is None:
-            for item in os.listdir(json_full_dir_path):
-                filenames.append(item)
-        return filenames
+            import sorting
+        except:
+            from models import sorting
+        
+        df = sorting.sort_table(self.dataframe)
+        self.dataframe = df
 
     def save_graph_to_image(self):
         file_path = pathlib.Path(GRAPHS_DIR_PATH, self.graphs)
@@ -108,16 +118,6 @@ class VisualizingModel(object):
         ax.set_ylabel('amount of income')
         fig = ax.get_figure()
         fig.savefig(file_path)
-
-    def sort_table(self):
-
-        try:
-            import sorting
-        except:
-            from models import sorting
-        
-        df = sorting.sort_table(self.dataframe)
-        self.dataframe = df
 
 
 def main():
