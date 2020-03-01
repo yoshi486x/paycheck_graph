@@ -86,26 +86,39 @@ class VisualizingModel(object):
         # Combine tables of each json file
         df = pd.concat(dataframes)
         df = df.pivot(index='date', columns='type', values='income')
-
-        """TODO Maybe this func should be placed separately"""
-        try:
-            try:
-                import camouflage
-            except:
-                from models import camouflage
-            df = camouflage.camouflage(df)
-        except:
-            pass
         
         self.dataframe = df
+
+    def rename_columns(self):
+        renames = ['Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot',
+             'Golf', 'Hotel', 'India', 'Juliett', 'Kilo', 'LIma', 'Mike', 
+             'November', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra']
+        df = self.dataframe
+
+        col_num = len(df.columns)
+        renames = renames[:col_num]
+        col_dict = dict(zip(df.columns, renames))
+        self.dataframe = df.rename(columns=col_dict)
+
+    def camouflage_values(self, camouflage=False):
+
+        if camouflage is True:
+            try:
+                from models import camouflage
+            except:
+                try:
+                    import camouflage
+                except:
+                    return
+            self.dataframe = camouflage.camouflage(self.dataframe)
 
     def sort_table(self):
 
         try:
-            import sorting
-        except:
             from models import sorting
-        
+        except:
+            import sorting
+
         df = sorting.sort_table(self.dataframe)
         self.dataframe = df
 
@@ -115,7 +128,7 @@ class VisualizingModel(object):
             figsize=(15, 10), kind='bar', stacked=True, grid=True, sharey=False,
             title='Income breakdown **Sample data was used for this graph**',
             )
-        ax.set_ylabel('amount of income')
+        ax.set_ylabel('amount of income [yen]')
         fig = ax.get_figure()
         fig.savefig(file_path)
 
@@ -123,7 +136,9 @@ class VisualizingModel(object):
 def main():
     visual = VisualizingModel(None)
     visual.create_base_table()
+    visual.rename_columns()
     visual.sort_table()
+    visual.camouflage_values(True)
     visual.save_graph_to_image()
 
 
