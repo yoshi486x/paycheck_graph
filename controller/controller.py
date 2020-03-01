@@ -10,6 +10,5 @@ def paycheck_analysis():
 
     full_analyzer.ask_for_db_activation()
     full_analyzer.check_mongodb_activation()
-    analyzer.convert_pdf_into_text()
-    analyzer.format_text_data_to_analysable_dict()
+    full_analyzer.process_all_data()
     full_analyzer.visualize_income_timechart()
