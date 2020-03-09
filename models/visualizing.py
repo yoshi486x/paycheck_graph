@@ -73,10 +73,15 @@ class VisualizingModel(object):
             with open(file_path, 'r') as json_file:
                 data = json.load(json_file)
             
+            """Exclude table name from json file"""
+            for key in data.keys():
+                name = key
+            dict_data = data[name].pop()
+
             """Single key extraction"""
             dates, keys, values = [], [], []
-            date = data['summary']['支給年月日']
-            for key, value in data['incomes'].items():
+            date = dict_data['summary']['支給年月日']
+            for key, value in dict_data['incomes'].items():
                 values.append(value)
                 keys.append(key)
                 dates.append(date)

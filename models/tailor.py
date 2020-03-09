@@ -224,6 +224,11 @@ class PartitionerModel(DataModel):
         self.dict_data[category] = initializer
         self.dict_data[category].update(new_pairs)
 
+    def add_table_name(self):
+        date = self.dict_data['summary']['支給年月日']
+        name = 'S_' + date
+        named_dict = {name: [self.dict_data]}
+        return named_dict
 
 def main():
     pass
