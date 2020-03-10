@@ -7,6 +7,8 @@ import re
 import pprint
 pp = pprint.PrettyPrinter(indent=2)
 TEXT_DIR_PATH = 'data/output/temp'
+PAID_INCOME = 'total_earnings' # 差引支給額
+PAID_DATE = 'paid_date' # 支払支給日
 
 class DataModel(object):
     """Base model of source data when while being extracted and formatted"""
@@ -72,14 +74,16 @@ class PartitionerModel(DataModel):
         self.dict_data[name] = dict(zip(keys, values))
 
     def self_correlate_block1(self):
-        """Update summary and profile categories."""
+        """Update summary and profile categories from block1"""
 
         # Initialization
-        category1 = self.keys[0]
-        category2 = self.keys[1]
+        category1 = self.keys[0] # 'profile'
+        category2 = self.keys[1] # 'summary'
         sec1 = ['check_type']
         sec2 = ['原籍会社', '社員番号', '氏名']
         sec3 = ['所属部署', '支給年月日', '支給額合計', '控除額合計']
+        profile_key = ['comp_name', 'emp_no', 'emp_name', 'dept_name']
+        summary_key = ['check_type', 'paid_date', 'total_income', 'total_deduction']
         para1, para2, para3 = [], [], []
 
         # Where function actually begins
@@ -100,8 +104,10 @@ class PartitionerModel(DataModel):
         para1.extend(para3)
 
         # Submit organized datamodel
-        self.update_datamodel(category2, sec1, para1)
-        self.update_datamodel(category1, sec2, para2)
+        # self.update_datamodel(category2, sec1, para1)
+        # self.update_datamodel(category1, sec2, para2)
+        self.update_datamodel(category2, summary_key, para1)
+        self.update_datamodel(category1, profile_key, para2)
          
         #exception for 所属部署 with more than two lines
         new_department = []
@@ -109,17 +115,20 @@ class PartitionerModel(DataModel):
         endIndex = self.block1.index('支給年月日') - 1
         lines = abs(endIndex - startIndex)
 
-        if  lines > 1:
+        if lines > 1:
             for index in startIndex + 1, endIndex:
                 new_department.append(self.block1[index])
-            self.dict_data[category1]['所属部署'] = ''.join(
+            self.dict_data[category1]['dept_name'] = ''.join(
                 new_department)
 
         # Calculate and append 差引支給額 to dict_data
-        total_income = self.dict_data[category2]['支給額合計']
-        total_deduction = self.dict_data[category2]['控除額合計']
+        # total_income = self.dict_data[category2]['支給額合計']
+        # total_deduction = self.dict_data[category2]['控除額合計']
+        total_income = self.dict_data[category2]['total_income']
+        total_deduction = self.dict_data[category2]['total_deduction']
 
-        deducted_income_key = '差引支給額'
+        # deducted_income_key = '差引支給額'
+        deducted_income_key = PAID_INCOME
         deducted_income_value = int(total_income) - int(total_deduction)
 
         self.dict_data[category2].update(
@@ -164,7 +173,7 @@ class PartitionerModel(DataModel):
 
         """Insert func for removing 差引支給額"""
         keys.append(None)
-        deducted_income_value = self.dict_data['summary']['差引支給額']
+        deducted_income_value = self.dict_data['summary'][PAID_INCOME]
         try:
             values.remove(deducted_income_value)
         except:
@@ -203,8 +212,8 @@ class PartitionerModel(DataModel):
         # pp.pprint(self.dict_data)
 
     def value_format_date(self):
-        thisdate = self.dict_data['summary']['支給年月日']
-        self.dict_data['summary']['支給年月日'] = datetime.datetime.strptime(thisdate, '%Y年%m月%d日').strftime('%Y-%m-%d')
+        thisdate = self.dict_data['summary'][PAID_DATE]
+        self.dict_data['summary'][PAID_DATE] = datetime.datetime.strptime(thisdate, '%Y年%m月%d日').strftime('%Y-%m-%d')
 
     def value_format_deductions(self, category='deductions'):
         for key, value in self.dict_data[category].items():
@@ -227,7 +236,7 @@ class PartitionerModel(DataModel):
         self.dict_data[category].update(new_pairs)
 
     def add_table_name(self):
-        date = self.dict_data['summary']['支給年月日']
+        date = self.dict_data['summary'][PAID_DATE]
         name = 'S_' + date
         named_dict = {name: [self.dict_data]}
         return named_dict

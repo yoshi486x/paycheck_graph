@@ -11,6 +11,8 @@ JSON_DIR_PATH = 'data/output/json'
 GRAPHS_DIR_PATH = 'data/output/graphs_and_charts'
 INCOME_GRAPH_NAME = 'income_timechart.png'
 
+PAID_DATE = 'paid_date'
+
 class JsonModel(object):
     def __init__(self, filename, json_file):
         if not json_file:
@@ -80,7 +82,7 @@ class VisualizingModel(object):
 
             """Single key extraction"""
             dates, keys, values = [], [], []
-            date = dict_data['summary']['支給年月日']
+            date = dict_data['summary'][PAID_DATE]
             for key, value in dict_data['incomes'].items():
                 values.append(value)
                 keys.append(key)
