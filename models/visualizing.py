@@ -11,6 +11,8 @@ JSON_DIR_PATH = 'data/output/json'
 GRAPHS_DIR_PATH = 'data/output/graphs_and_charts'
 INCOME_GRAPH_NAME = 'income_timechart.png'
 
+PAID_DATE = 'paid_date'
+
 class JsonModel(object):
     def __init__(self, filename, json_file):
         if not json_file:
@@ -66,17 +68,26 @@ class VisualizingModel(object):
         dataframes = []
 
         # Loop
+        """TODO: dict data loaded from json file will have some broken structures.
+        In detail, values with blank space are separeted into multiple columns"""
         for filename in self.filenames:
             dates, keys, values, indexes = [], [], [], []
 
             file_path = pathlib.Path(JSON_DIR_PATH, filename)
             with open(file_path, 'r') as json_file:
-                data = json.load(json_file)
+                # data = json.load(json_file)
+                dict_data = json.load(json_file)
             
+            """Exclude table name from json file"""
+            # for key in data.keys():
+            #     name = key
+            # dict_data = data[name].pop()
+
             """Single key extraction"""
             dates, keys, values = [], [], []
-            date = data['summary']['支給年月日']
-            for key, value in data['incomes'].items():
+            # pp.pprint(dict_data)
+            date = dict_data[PAID_DATE]
+            for key, value in dict_data['incomes'].items():
                 values.append(value)
                 keys.append(key)
                 dates.append(date)
