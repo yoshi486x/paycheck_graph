@@ -59,8 +59,10 @@ class PartitionerModel(DataModel):
         self.ankerIndexes.append(len(self.list_data))
 
     def partition_data(self):
-        """Partition one list of data into 4 small lists
-        Look at this blocks when partitioning is doing something wrong."""
+        """
+        Partition one list of data into 3 small lists.
+        2 ankers in between are defined by self.ankers = ['■支給額明細', '■口座情報'].
+        """
 
         self.block1 = self.list_data[self.ankerIndexes[0]:self.ankerIndexes[1]]
         self.block2 = self.list_data[self.ankerIndexes[1]:self.ankerIndexes[2]]
