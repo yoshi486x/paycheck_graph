@@ -75,12 +75,13 @@ class VisualizingModel(object):
 
             file_path = pathlib.Path(JSON_DIR_PATH, filename)
             with open(file_path, 'r') as json_file:
-                data = json.load(json_file)
+                # data = json.load(json_file)
+                dict_data = json.load(json_file)
             
             """Exclude table name from json file"""
-            for key in data.keys():
-                name = key
-            dict_data = data[name].pop()
+            # for key in data.keys():
+            #     name = key
+            # dict_data = data[name].pop()
 
             """Single key extraction"""
             dates, keys, values = [], [], []

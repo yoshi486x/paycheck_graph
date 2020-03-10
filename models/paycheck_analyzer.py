@@ -40,9 +40,9 @@ class AnalyzerModel(object):
         text_tailor.value_format_date()
         text_tailor.value_format_deductions()
         text_tailor.value_format_remove_dot_in_keys()
-        self.dict_data = text_tailor.add_table_name()
+        # self.dict_data = text_tailor.add_table_name()
+        self.dict_data = text_tailor.dict_data
         # pp.pprint(self.dict_data)
-        # self.dict_data = text_tailor.dict_data
 
     def record_dict_data(self, filename):
         """Record dict_data to multiple file/db formats (json, mongodb, mysql)"""
