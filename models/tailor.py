@@ -13,7 +13,7 @@ PAID_DATE = 'paid_date' # 支払支給日
 class DataModel(object):
     """Base model of source data when while being extracted and formatted"""
     def __init__(self, list_data=None, filenames=list):
-        self.keys = ['profile', 'summary', 'incomes', 'deductions', 'attendances', 'others']
+        self.keys = ['incomes', 'deductions', 'attendances', 'others']
         self.list_data = list_data
         self.dict_data = collections.defaultdict(dict, {key:[] for key in self.keys})
         self.filenames = filenames
@@ -99,23 +99,14 @@ class PartitionerModel(DataModel):
         # Combine 所属部署 extracted in two lines (if so).
         para2.append(para3.pop(0))
         sec2.append(sec3.pop(0))
-        print('para2:', para2)
-        print('sec2:', sec2)
 
         # Combine check_type(key) with summary(category)
         sec1.extend(sec3)
         para1.extend(para3)
-        print('sec1:', sec1)
-        print('para1:', para1)
 
-        # Submit organized datamodel
-        # self.update_datamodel(category2, sec1, para1)
-        # self.update_datamodel(category1, sec2, para2)
-        # self.update_datamodel(category2, summary_key, para1)
-        # self.update_datamodel(category1, profile_key, para2)
+        # Update extracted key-value pairs
         self.dict_data.update(dict(zip(summary_key, para1)))
         self.dict_data.update(dict(zip(profile_key, para2)))
-        pp.pprint(self.dict_data)
          
         #exception for 所属部署 with more than two lines
         new_department = []
@@ -126,16 +117,10 @@ class PartitionerModel(DataModel):
         if lines > 1:
             for index in startIndex + 1, endIndex:
                 new_department.append(self.block1[index])
-            # self.dict_data[category1]['dept_name'] = ''.join(
-            #     new_department)
             self.dict_data['dept_name'] = ''.join(
                 new_department)
 
         # Calculate and append 差引支給額 to dict_data
-        # total_income = self.dict_data[category2]['支給額合計']
-        # total_deduction = self.dict_data[category2]['控除額合計']
-        # total_income = self.dict_data[category2]['total_income']
-        # total_deduction = self.dict_data[category2]['total_deduction']
         total_income = self.dict_data['total_income']
         total_deduction = self.dict_data['total_deduction']
 
@@ -143,8 +128,6 @@ class PartitionerModel(DataModel):
         deducted_income_key = PAID_INCOME
         deducted_income_value = int(total_income) - int(total_deduction)
 
-        # self.dict_data[category2].update(
-        #     {deducted_income_key: deducted_income_value})
         self.dict_data.update(
             {deducted_income_key: deducted_income_value})
         # pp.pprint(self.dict_data)
@@ -187,7 +170,6 @@ class PartitionerModel(DataModel):
 
         """Insert func for removing 差引支給額"""
         keys.append(None)
-        # deducted_income_value = self.dict_data['summary'][PAID_INCOME]
         deducted_income_value = self.dict_data[PAID_INCOME]
         try:
             values.remove(deducted_income_value)
@@ -227,8 +209,6 @@ class PartitionerModel(DataModel):
         # pp.pprint(self.dict_data)
 
     def value_format_date(self):
-        # thisdate = self.dict_data['summary'][PAID_DATE]
-        # self.dict_data['summary'][PAID_DATE] = datetime.datetime.strptime(thisdate, '%Y年%m月%d日').strftime('%Y-%m-%d')
         thisdate = self.dict_data[PAID_DATE]
         self.dict_data[PAID_DATE] = datetime.datetime.strptime(thisdate, '%Y年%m月%d日').strftime('%Y-%m-%d')
 
@@ -253,7 +233,6 @@ class PartitionerModel(DataModel):
         self.dict_data[category].update(new_pairs)
 
     def add_table_name(self):
-        # date = self.dict_data['summary'][PAID_DATE]
         date = self.dict_data[PAID_DATE]
         name = 'S_' + date
         named_dict = {name: [self.dict_data]}

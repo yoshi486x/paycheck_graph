@@ -68,6 +68,8 @@ class VisualizingModel(object):
         dataframes = []
 
         # Loop
+        """TODO: dict data loaded from json file will have some broken structures.
+        In detail, values with blank space are separeted into multiple columns"""
         for filename in self.filenames:
             dates, keys, values, indexes = [], [], [], []
 
@@ -82,8 +84,7 @@ class VisualizingModel(object):
 
             """Single key extraction"""
             dates, keys, values = [], [], []
-            # date = dict_data['summary'][PAID_DATE]
-            pp.pprint(dict_data)
+            # pp.pprint(dict_data)
             date = dict_data[PAID_DATE]
             for key, value in dict_data['incomes'].items():
                 values.append(value)
