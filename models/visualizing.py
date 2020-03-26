@@ -96,9 +96,9 @@ class VisualizingModel(object):
 
         # Combine tables of each json file
         df = pd.concat(dataframes)
-        df = df.pivot(index='date', columns='type', values='income')
+        table = pd.pivot_table(df, index='date', columns='type', values='income', fill_value=0)
         
-        self.dataframe = df
+        self.dataframe = table
 
     def rename_columns(self):
         renames = ['Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot',
@@ -146,6 +146,7 @@ class VisualizingModel(object):
 
 def main():
     visual = VisualizingModel(None)
+    print(visual.filenames)
     visual.create_base_table()
     visual.rename_columns()
     visual.sort_table()

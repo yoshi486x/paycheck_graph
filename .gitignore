@@ -14,3 +14,5 @@ pdwork*
 __print_pdf_textboxes.py
 .DS_Store
 camouflage.py
+config.py
+aws/*
